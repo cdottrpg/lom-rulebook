@@ -1986,10 +1986,10 @@ def build():
         ["Electrician", "IQ/Average", "Work with electrical systems"],
         ["Inventor!", "IQ/Wildcard", "Wildcard skill covering all invention, engineering, and mechanical tasks"],
         # SPIRITUAL
-        ["— SPIRITUAL SKILLS (SPI-based) —", "", "Spiritual Intuition cannot be raised with character points — it improves only through Sequence progression. Spiritual Perception and Divination Arts can be purchased."],
-        ["Spiritual Intuition", "SPI/Hard", "Sense fate-changes and danger through spirit (cannot buy; pathway only)"],
-        ["Spiritual Perception", "SPI/Average", "Detect hidden spirits and supernatural phenomena"],
-        ["Divination Arts", "SPI/Hard", "Perform focused divination: pendulum, coin, dowsing, dream interpretation, scrying, tarot"],
+        ["— SPIRITUAL SKILLS —", "", "All three spiritual skills can be purchased and improved with character points."],
+        ["Spiritual Intuition", "SPI/Hard", "Sense the flow of fate and changes in destiny; detect threats at a glance"],
+        ["Spiritual Perception", "SPI/Average", "Passive innate sense: see ghosts, auras, and traces of magic. Peers into the Astral and Spiritual Bodies of beings."],
+        ["Divination Arts", "IQ/Hard", "Active analytical divination: pendulum, tarot, scrying, dream interpretation. Uses tools to extract precise information from the Spirit Realm. SPI augments the roll (1 SPI = +1)."],
         # KNOWLEDGE (continued)
         # SURVIVAL
         ["— SURVIVAL & OTHER —", "", ""],
@@ -2254,42 +2254,53 @@ def build():
 
     story += subsection("1. Spiritual Intuition (SPI/Hard)")
     story.append(body(
-        "Sense changes in fate and detect danger through your spirit before it manifests physically. "
-        "This is the soul's early-warning system — not rational thought, but a deep <i>knowing</i>."
+        "The ability to sense the flow of fate and detect changes in destiny before they manifest physically. "
+        "The Abyss and Wheel of Fortune pathways possess the strongest intuition and can recognise a threat "
+        "at a glance. This is the soul's early-warning system — not rational thought, but a deep <i>knowing</i>."
     ))
     si_data = [
         ["Roll Result", "Effect"],
-        ["Success", "Vague feeling of wrongness or impending danger"],
-        ["Success by 3+", "Know approximate direction of the threat"],
-        ["Success by 5+", "Specific premonition (ambush, poison, betrayal)"],
-        ["Critical Success", "Brief mental vision of the exact danger"],
+        ["Success", "Vague feeling of wrongness or impending danger; Abyss/WOF: recognise threat source at a glance"],
+        ["Success by 3+", "Know approximate direction of the threat and its severity"],
+        ["Success by 5+", "Specific premonition (ambush, poison, betrayal) with timing"],
+        ["Critical Success", "Clear vision of the event — cause, effect, and all parties involved"],
     ]
     si_data[0] = [Paragraph(c, S['TableHeader']) for c in si_data[0]]
     for i in range(1, len(si_data)):
         si_data[i] = [Paragraph(c, S['TableCell']) for c in si_data[i]]
     story.append(Table(si_data, colWidths=[1.5*inch, 4.8*inch], style=table_style()))
     story.append(sp(3))
-    story.append(body("<b>Modifiers:</b> +2 meditative state; -2 distracted/in combat; -4 magically concealed"))
+    story.append(body("<b>Modifiers:</b> +2 meditative state; -2 distracted/in combat; -4 magically concealed; Abyss/WOF +2 (innate)"))
     story.append(sp(3))
 
     story += subsection("2. Spiritual Perception (SPI/Average)")
     story.append(body(
-        "Passively sense spiritual disturbances, detect hidden spirits, and notice supernatural phenomena. "
-        "The GM rolls this secretly when supernatural events occur nearby."
+        "A passive, innate ability to sense the spiritual world — including ghosts, traces of magic, "
+        "and supernatural phenomena. The user can peer into the Astral Body and Spiritual Body of beings, "
+        "reading their emotional state and spiritual health. The GM rolls this secretly when supernatural "
+        "events occur nearby."
     ))
+    story.append(sp(2))
+    story.append(body(
+        "<b>DANGER:</b> Spiritual Perception can expose the viewer to beings far beyond their comprehension. "
+        "Looking upon the Spiritual Body of a deity, angel, or sufficiently powerful entity may force a "
+        "Fright Check at a severe penalty or cause spiritual damage. The GM determines the exact effect "
+        "based on the entity's nature and the observer's Sequence."
+    ))
+    story.append(sp(2))
     sp_data = [
         ["Roll Result", "Effect"],
-        ["Success", "Notice a 'spiritual weight' or unnatural presence in the area"],
-        ["Success by 3+", "Pinpoint the location of the spiritual disturbance"],
-        ["Success by 5+", "Identify type of entity (ghost, Beyonder, cursed item)"],
-        ["Critical Success", "Detailed information: sequence level, pathway, emotional state"],
+        ["Success", "Notice a 'spiritual weight' or unnatural presence in the area; glimpse surface emotions from the Astral Body"],
+        ["Success by 3+", "Pinpoint location; read the Spiritual Body — see if the target is healthy, cursed, or spiritually damaged"],
+        ["Success by 5+", "Identify type of entity (ghost, Beyonder, cursed item) and estimate its power level"],
+        ["Critical Success", "Full spiritual read: sequence level, pathway, emotional state, soul health, hidden injuries"],
     ]
     sp_data[0] = [Paragraph(c, S['TableHeader']) for c in sp_data[0]]
     for i in range(1, len(sp_data)):
         sp_data[i] = [Paragraph(c, S['TableCell']) for c in sp_data[i]]
     story.append(Table(sp_data, colWidths=[1.5*inch, 4.8*inch], style=table_style()))
     story.append(sp(3))
-    story.append(body("<b>Modifiers:</b> +2 graveyard/ritual site; -2 industrial/polluted area; -4 entity hiding; +6 Seer"))
+    story.append(body("<b>Modifiers:</b> +2 graveyard/ritual site; -2 industrial/polluted area; -4 entity hiding; +6 Seer; -4 to -10 viewing a high-sequence entity's true spiritual form"))
     story.append(sp(3))
 
     story += subsection("3. Spirit Vision")
@@ -2331,12 +2342,16 @@ def build():
     ))
     story.append(sp(2))
 
-    story += subsection("5. Divination Arts (SPI/Hard)")
+    story += subsection("5. Divination Arts (IQ/Hard)")
     story.append(body(
-        "Perform focused divination using spiritual techniques: pendulum, coin, dowsing, dream "
-        "interpretation, mirror scrying, tarot, and other methods of obtaining hidden knowledge. "
-        "Faster and cheaper than full ritual divination, but limited to questions that can be "
-        "answered through spiritual insight alone."
+        "An active, analytical mystical art that uses the caster's spirituality, spirit bodies, and "
+        "astral projection to deliberately perceive specific information about the past, present, or "
+        "future through the Spirit Realm. Unlike passive Spiritual Perception, Divination Arts requires "
+        "tools (pendulum, tarot, crystal ball, scrying mirror) and active concentration."
+    ))
+    story.append(body(
+        "<b>SPI Augmentation:</b> The caster may spend SPI to augment a Divination Arts roll "
+        "(1 SPI = +1, no cap). This is separate from the SPI cost of the divination itself."
     ))
     story.append(body(
         "<i>See <b>Chapter 6.5: Divination Arts</b> for the complete system — methods, "
@@ -3542,38 +3557,24 @@ def build():
 
     story += section("I. The Divination Arts Skill")
     story.append(body(
-        "<b>Divination Arts (SPI/Hard)</b> — the focused skill of obtaining hidden knowledge through "
-        "spiritual techniques: pendulum swinging, coin tossing, dowsing, dream interpretation, mirror "
-        "scrying, tarot reading, and other methods of peering beyond the mundane. "
-        "<b>Casting Divination Arts costs 1–2 SPI</b> per use for most standard divinations."
+        "<b>Divination Arts (IQ/Hard)</b> — an active, analytical mystical art that uses the caster's "
+        "spirituality, spirit bodies, and astral projection to perceive specific information about the "
+        "past, present, or future through the Spirit Realm. Methods include pendulum, tarot, scrying, "
+        "dream interpretation, coin tossing, dowsing, and other techniques of peering beyond the mundane. "
+        "<b>SPI Augmentation:</b> The caster may spend additional SPI (1 SPI = +1, no cap) to improve "
+        "their Divination Arts roll, in addition to the base SPI cost of the divination itself."
     ))
     story.append(sp(2))
     story.append(body(
-        "Divination Arts is <b>narrower</b> than Ritualistic Magic — it covers only divination — "
-        "but it is <b>faster, cheaper, and more portable</b>. A Beyonder with Divination Arts can "
-        "ask a quick question with a pendulum in moments (costing 1–2 SPI), while Ritualistic Magic "
-        "requires full ritual setup even for simple divination. However, complex or large-scale divination "
-        "(finding a hidden city, divining the future of a nation) still requires Ritualistic Magic."
-    ))
-    story.append(sp(2))
-    story.append(body("The two skills overlap at the following boundaries:"))
-    story.append(bbullet(
-        "<b>Simple divination</b> (yes/no, vague direction, basic insight): "
-        "Divination Arts is sufficient. Cost: 1–2 SPI."
-    ))
-    story.append(bbullet(
-        "<b>Moderate divination</b> (find a person, glimpse a scene, interpret a dream): "
-        "Either skill works. Divination Arts is faster (minutes vs. ritual setup) but may "
-        "receive less detail. Cost: 2 SPI."
-    ))
-    story.append(bbullet(
-        "<b>Complex divination</b> (long-range, multiple questions, resisting countermeasures): "
-        "Requires Ritualistic Magic or a very high Divination Arts roll (-4 penalty). Cost: 2 SPI."
+        "Divination Arts is fundamentally different from <b>Ritualistic Magic</b>. "
+        "Divination draws on the caster's <b>own spirituality</b> to infer answers from the "
+        "spirit world, while Ritualistic Magic petitions external entities for revelations. "
+        "The two skills do not overlap — a Beyonder cannot substitute one for the other."
     ))
     story.append(sp(2))
     story.append(body(
-        "<b>Default:</b> Divination Arts defaults to Ritualistic Magic-2 and vice versa. "
-        "A character with one skill at 12+ can attempt the other at -2."
+        "<b>Default:</b> Divination Arts defaults to <b>Spiritual Perception-4</b>. "
+        "A character with active Spirit Vision may attempt unskilled divination at -4."
     ))
     story.append(sp(3))
 
@@ -3677,8 +3678,7 @@ def build():
 
     story += subsection("Step 2 — Choose Method & Pay SPI")
     story.append(body(
-        "Select a divination method (see Section II). Pay the SPI cost. If using ritualistic "
-        "divination (full ritual setup), use the Ritualistic Magic rules in Chapter 7 instead."
+        "Select a divination method (see Section II). Pay the SPI cost."
     ))
     story.append(sp(3))
 
@@ -3730,10 +3730,8 @@ def build():
     # ─────────────────────────────────────────────────────────────────────────────
     story += section("IV. Divination Awareness & Countermeasures")
     story.append(body(
-        "In a world where a Seer can glimpse your past with a candle and a lock of hair, "
-        "the ability to <b>detect</b> and <b>thwart</b> divination is as vital as any offensive power. "
         "Certain pathways develop innate awareness of being watched through spiritual means, "
-        "while others learn active techniques to conceal themselves from prying eyes."
+        "while others learn active techniques to conceal themselves from divination."
     ))
     story.append(sp(2))
 
@@ -3746,7 +3744,7 @@ def build():
     story.append(bullet("<b>Step 1 — Sequence Immunity:</b> Does the target's Sequence impose a penalty on the diviner's effective skill? (See Sec. 5.) If the penalty makes the roll impossible, the diviner must overcome it via Counter-Countermeasures (Sec. 6)."))
     story.append(bullet("<b>Step 2 — Passive Awareness:</b> Does the target have a pathway ability that grants automatic detection? (See Sec. 1.) If yes, they know immediately and may act."))
     story.append(bullet("<b>Step 3 — Detection Roll:</b> If not automatic, the target may roll SPI/Per (if they have reason to suspect) to sense the divination. (See Sec. 2.)"))
-    story.append(bullet("<b>Step 4 — Active Countermeasures:</b> Apply the target's active technique penalties to the diviner's Divination Arts or Ritualistic Magic roll. (See Sec. 3.) All active techniques stack."))
+    story.append(bullet("<b>Step 4 — Active Countermeasures:</b> Apply the target's active technique penalties to the diviner's Divination Arts roll. (See Sec. 3.) All active techniques stack."))
     story.append(bullet("<b>Step 5 — Counter-Countermeasures:</b> Apply any bonuses the diviner has earned — Sequence advantage, direct link, blood sacrifice, or a dedicated ritual. (See Sec. 6.)"))
     story.append(bullet("<b>Step 6 — Resolution:</b> The diviner rolls. On success, the effect goes through (possibly distorted by countermeasures). On failure, the attempt fails and the target may be alerted."))
     story.append(sp(3))
@@ -3782,7 +3780,7 @@ def build():
         ["Fool / Error / Door", "Seq 5+ (any)",
          "Free Per roll (no bonus) to detect any divination targeting them. +2 if the divination concerns fate, concealment, or secrets. Lord of the Mysteries pathways gain innate divination awareness as part of their authority."],
         ["Any pathway", "Seq 4+ (Demigod)",
-         "Automatic awareness. A demigod always knows when someone of weaker Sequence attempts to divine them. Equal or stronger Sequence requires a Quick Contest of SPI vs the diviner's Divination Arts or Ritualistic Magic."],
+         "Automatic awareness. A demigod always knows when someone of weaker Sequence attempts to divine them. Equal or stronger Sequence requires a Quick Contest of SPI vs the diviner's Divination Arts."],
     ]
     sense_data[0] = [Paragraph(c, S['TableHeader']) for c in sense_data[0]]
     for i in range(1, len(sense_data)):
@@ -3840,8 +3838,7 @@ def build():
     # 3A
     story += subsection("3A. Spiritual Warding (Universal, Seq 7+)")
     story.append(body(
-        "A Beyonder erects a thin film of protective spirituality around themselves. This is the "
-        "simplest and most widely known anti-divination technique."
+        "The simplest and most widely known anti-divination technique — a protective spiritual barrier."
     ))
     story.append(bullet("Cost: 2 SPI"))
     story.append(bullet("Duration: 1 hour, or until the ward is broken"))
@@ -3853,9 +3850,8 @@ def build():
     # 3B
     story += subsection("3B. Concealment (Darkness Pathway, Seq 5 — Spirit Warlock)")
     story.append(body(
-        "The Evernight Goddess's domain. The Beyonder wraps themselves in the concept of "
-        "<b>Concealment</b> — the spiritual equivalent of hiding in plain sight. They become "
-        "harder to find, remember, and divine."
+        "The Beyonder wraps themselves in the concept of Concealment — becoming harder "
+        "to find, remember, and divine."
     ))
     story.append(bullet("Cost: 2 SPI"))
     story.append(bullet("Duration: 1 hour"))
@@ -3867,23 +3863,21 @@ def build():
     # 3C
     story += subsection("3C. Identity Confusion (Fool Pathway, Seq 6 — Faceless)")
     story.append(body(
-        "A Faceless can mask their spiritual aura to match a different person they have "
-        "studied or touched. If a divination targets the Faceless's original identity, it "
-        "instead picks up the masked aura — leading the diviner to the wrong person."
+        "The Faceless masks their spiritual aura to match a person they have studied. "
+        "Divination targeting their original identity picks up the masked aura instead."
     ))
     story.append(bullet("Cost: 2 SPI"))
     story.append(bullet("Duration: 1 hour, or until the Faceless changes their masked identity"))
     story.append(bullet("Effect: Any divination attempting to identify you or locate you by your spiritual signature diverts to the person you are impersonating"))
     story.append(bullet("Limitation: You must have met or studied the target whose aura you mimic. A simple description is not enough — you need 10+ minutes of close observation or a personal item."))
-    story.append(bullet("Counter: A diviner who critically succeeds on their Divination Arts or Ritualistic Magic roll realises the spiritual signature is a mask and may attempt a Quick Contest of Divination Arts or Ritualistic Magic vs your SPI to pierce it"))
+    story.append(bullet("Counter: A diviner who critically succeeds on their Divination Arts roll realises the spiritual signature is a mask and may attempt a Quick Contest of Divination Arts vs your SPI to pierce it"))
     story.append(sp(2))
 
     # 3D
     story += subsection("3D. Door Misdirection (Door Pathway, Seq 5 — Traveler)")
     story.append(body(
-        "The Traveler introduces a tiny 'error' into the spiritual connection — the divination "
-        "goes to the wrong address. The diviner's spell connects to a random location or person "
-        "instead of the intended target."
+        "The Traveler introduces an error into the spiritual connection, redirecting the "
+        "divination to a random location or person."
     ))
     story.append(bullet("Cost: 3 SPI"))
     story.append(bullet("Duration: Instant (opposes a single divination attempt)"))
@@ -3895,23 +3889,21 @@ def build():
     # 3E
     story += subsection("3E. Historical Mimicry: Spiritual Blank (Fool Pathway, Seq 3 — Scholar of Yore)")
     story.append(body(
-        "The Scholar projects a distracting historical figure or event over their own spiritual signature. "
-        "To any divination spell, the Scholar appears as a different person, a location, or simply "
-        "a blurred patch of unresolved history."
+        "The Scholar projects a historical figure or event over their spiritual signature. "
+        "Divination returns information about the projection instead of the Scholar."
     ))
     story.append(bullet("Cost: 5 SPI"))
     story.append(bullet("Duration: 1d6 minutes (the projection collapses immediately if you take any hostile action)"))
     story.append(bullet("Effect: Any divination targeting you returns information about the projected historical figure or scene instead of you"))
     story.append(bullet("Penalty: Concentrating to maintain the projection prevents you from taking other complex actions"))
-    story.append(bullet("Detection: A demigod of equal or stronger Sequence can perceive the projection as a 'laminated' spiritual layer and may attempt a Quick Contest of Divination Arts or Ritualistic Magic vs your SPI to see through it"))
+    story.append(bullet("Detection: A demigod of equal or stronger Sequence can perceive the projection as a 'laminated' spiritual layer and may attempt a Quick Contest of Divination Arts vs your SPI to see through it"))
     story.append(sp(2))
 
     # 3F
     story += subsection("3F. Self-Divination Interference (Universal, Seq 5+)")
     story.append(body(
-        "A Beyonder pre-emptively divines <i>themselves</i>, saturating their spiritual signature "
-        "with the result. For the rest of the day, any external divination about the same question "
-        "receives a distorted echo of the Beyonder's own self-divination instead."
+        "The Beyonder pre-emptively divines themselves, saturating their signature with the result. "
+        "External divination about the same question receives a distorted echo instead."
     ))
     story.append(bullet("Cost: SPI equal to what a divination of that scope would normally cost (see Chapter 6.5, Section III, or Chapter 7, Power Sources)"))
     story.append(bullet("Duration: 24 hours, or until you perform a new self-divination that overwrites the previous one"))
@@ -4749,11 +4741,6 @@ def build():
         "point ladder cost for the new level — same as if you had no potion at all. Look up the "
         "cost on the point-cost ladder in <b>Chapter 3: Character Creation</b> and pay it."
     ))
-    story.append(body(
-        "<b>Exception — Spiritual Intuition</b> cannot be raised with character points. It improves only through "
-        "Sequence progression and pathway bonuses. <b>Spiritual Perception and Divination Arts</b> can be purchased "
-        "and improved with character points like any other skill."
-    ))
     story.append(sp(2))
     story.append(body(
         "<b>Example (skill):</b> A Seer receives Occultism at IQ+2 (Average skill). "
@@ -4833,7 +4820,7 @@ def build():
           ("Seer", "Fool Pathway",
           [("SPI", "+9"), ("Eidetic Memory", "continuously grows as the potion digests; allows memorisation of complex ritual steps and divination methods")],
           [("Ritualistic Magic/IQ [Very Hard]", "+3"),
-            ("Divination Arts/SPI [Hard]", "+3"),
+            ("Divination Arts/IQ [Hard]", "+3"),
             ("Spiritual Intuition/SPI [Hard]", "+3"),
             ("Occultism/IQ [Average]", "+2")],
            "<b><font color='#C0392B'>Spirit Vision:</font></b> By expending 1 SPI, the Seer activates Spirit Vision (costs 1 SPI per minute). "
@@ -5035,7 +5022,7 @@ def build():
             [("SPI", "+9")],
           [("Occultism/IQ [Average]", "+3"),
            ("Ritualistic Magic/IQ [Very Hard]", "+4"),
-            ("Divination Arts/SPI [Hard]", "+2"),
+            ("Divination Arts/IQ [Hard]", "+2"),
            ("Thaumatology/IQ [Very Hard]", "+2")],
             "<b><font color='#C0392B'>Eyes of Mystery Prying (1 SPI/min):</font></b> A Mystery Pryer's eyes are "
              "special and allow them to see things that are normally invisible. Always-on passive effects: peer "
@@ -6345,7 +6332,7 @@ def build():
           ("Witch", "Demoness Pathway",
              [("SPI", "+7"), ("Charisma +1", "+1 to Influence skills; NPCs predisposed to trust you"), ("Appearance (Beautiful)", "the potion perfects the Witch's features; NPCs tend to react favourably (GM discretion)")],
            [("Ritualistic Magic (Mirror, Dowsing)/IQ [Very Hard]", "+4"),
-            ("Divination Arts/SPI [Hard]", "+2"),
+            ("Divination Arts/IQ [Hard]", "+2"),
             ("Occultism/IQ [Average]", "+2")],
           "<b><font color='#C0392B'>Permanent Changes:</font></b> The potion changes the Beyonder's gender to female. "
           "Slight height increase (~5 cm). Body proportions approach perfection. Details become more alluring.\n"
@@ -6841,7 +6828,7 @@ def build():
           ("Faceless", "Fool Pathway",
            [("SPI", "+2")],
            [("Acting/IQ [Average]", "+4"),
-            ("Divination Arts/SPI [Hard]", "+2"),
+            ("Divination Arts/IQ [Hard]", "+2"),
             ("Brawling/DX [Easy]", "+2"),
             ("Observation/PER [Average]", "+4")],
           "<b><font color='#C0392B'>Shapeshifting:</font></b> The Faceless can freely mould their body and flesh, "
@@ -6858,8 +6845,8 @@ def build():
           "wrong person. Duration: 1 hour, or until the Faceless changes their masked identity. The Faceless "
           "must have met or studied the target whose aura they mimic — a simple description is not enough; "
           "10+ minutes of close observation or a personal item is required. A diviner who critically succeeds "
-          "on their Divination Arts or Ritualistic Magic roll realises the spiritual signature is a mask and "
-          "may attempt a Quick Contest of Divination Arts or Ritualistic Magic vs the Faceless's SPI to pierce it.\n"
+          "on their Divination Arts roll realises the spiritual signature is a mask and "
+          "may attempt a Quick Contest of Divination Arts vs the Faceless's SPI to pierce it.\n"
           "<b><font color='#C0392B'>Reinforced Abilities:</font></b>\n"
           "<b><font color='#C0392B'>Flaming Jump (1 SPI):</font></b> Range increased to 40 m.\n"
           "<b><font color='#C0392B'>Flame Controlling (1 SPI):</font></b> Range increased to 40 m.\n"
@@ -7273,7 +7260,7 @@ def build():
            ("Soul Assurer", "Darkness Pathway",
            [("SPI", "+2")],
            [("Ritualistic Magic/IQ [Very Hard]", "+2"),
-            ("Divination Arts/SPI [Hard]", "+2")],
+            ("Divination Arts/IQ [Hard]", "+2")],
            "<b><font color='#C0392B'>Spiritual Vision (Passive – Reinforced):</font></b> The Soul Assurer sees spiritual "
             "lifeforms at all times without activating Spirit Vision. Constant exposure grants +3 to "
             "Spiritual Perception rolls and makes it impossible for spirits to hide within line of sight.\n"
@@ -7783,7 +7770,7 @@ def build():
             [("SPI", "+10")],
             [("Spiritual Intuition/SPI [Hard]", "+2"),
              ("Spiritual Perception/SPI [Average]", "+2"),
-             ("Divination Arts/SPI [Hard]", "+2")],
+             ("Divination Arts/IQ [Hard]", "+2")],
           "<b><font color='#C0392B'>Fate Sensation (passive):</font></b> The Dreamless is capable of sensing the flow and "
           "changes within fate around them. The GM may call for a Spiritual Intuition/SPI (Hard) roll to sense specific "
           "changes in fate.\n"
@@ -8253,9 +8240,9 @@ def build():
     story += section("Spiritual Skills Quick Reference")
     spi_quick = [
         ["Skill", "Difficulty", "What It Does", "When to Use", "Purchasable?"],
-        ["Spiritual Intuition", "SPI/Hard", "Sense danger through fate before it happens", "Before danger strikes; suspicious situations", "No (pathway only)"],
-        ["Spiritual Perception", "SPI/Average", "Detect spiritual presences passively or actively", "Entering locations; sensing Beyonders", "Yes"],
-        ["Divination Arts", "SPI/Hard", "Focused divination: pendulum, coin, dowsing, dream, scrying, tarot", "Gathering hidden information; quick questions", "Yes"],
+        ["Spiritual Intuition", "SPI/Hard", "Sense the flow of fate and changes in destiny; detect threats at a glance", "Before danger strikes; suspicious situations", "Yes"],
+        ["Spiritual Perception", "SPI/Average", "Passive innate sense: see ghosts, auras, traces of magic; peer into Astral and Spiritual Bodies", "Entering locations; sensing Beyonders; examining beings", "Yes"],
+        ["Divination Arts", "IQ/Hard", "Active analytical divination: pendulum, tarot, scrying, dream interpretation; SPI augments roll", "Gathering hidden information; extracting precise data from the Spirit Realm", "Yes"],
     ]
     spi_quick[0] = [Paragraph(c, S['TableHeader']) for c in spi_quick[0]]
     for i in range(1, len(spi_quick)):
