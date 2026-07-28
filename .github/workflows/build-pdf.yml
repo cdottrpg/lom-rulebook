@@ -25,7 +25,9 @@ jobs:
         run: pip install reportlab pypdf
 
       - name: Run the rulebook script
-        run: python build_rulebook.py
+        run: |
+          python build_rulebook.py
+          python build_rulebook.py
 
       - name: Normalize output filename
         run: |
