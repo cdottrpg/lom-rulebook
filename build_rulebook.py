@@ -7,6 +7,7 @@ from reportlab.platypus import (
     HRFlowable, Flowable
 )
 from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_JUSTIFY, TA_RIGHT
+import os
 
 # ══════════════════════════════════════════════════════════════════════════════
 # Encoding safeguard: detect mojibake (UTF-8 bytes read as cp1252)
@@ -593,14 +594,13 @@ def normal_page(canvas, doc):
     canvas.restoreState()
 
 # Output folder
-import os
 OUTPUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "docs")
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 # ─── Build document ──────────────────────────────────────────────────────────
 def build():
     doc = SimpleDocTemplate(
-        os.path.join(OUTPUT_DIR, "Mr.Worms LOM TTRPG Rulebook v6.9d.pdf"),
+        os.path.join(OUTPUT_DIR, "Mr.Worms LOM TTRPG Rulebook v6.9e.pdf"),
         pagesize=letter,
         rightMargin=0.65*inch,
         leftMargin=0.65*inch,
@@ -625,9 +625,8 @@ def build():
          ["5",     "Combat",              "Initiative, Maneuvers, Active Defenses, Ranged Combat, Damage & Injury, Healing & Recovery, Spirit Body Damage, Fright Checks", _get_page("Chapter 5")],
          ["6",     "The Beyonder System", "Beyonders, Sequence Ladder, Digestion, CoR, Advancement, Rampagers, Society, Mystical Items", _get_page("Chapter 6")],
         ["6.5",   "Divination Arts",     "Divination Arts Skill, Methods & Tools, Performing a Divination, Awareness & Countermeasures, Anti-Divination Techniques", _get_page("Chapter 6.5")],
-        ["7",     "Ritualistic Magic",   "Core Philosophy, Primary Skill, Ritual Resolution, Power Sources, Effect Categories, Failure & Consequences, Sequence & Rituals, Sample Rituals", _get_page("Chapter 7")],
-        ["7.5",    "Summoning Spiritual Creatures", "Incantations, Rituals, Contracts, Creatures",          _get_page("Chapter 7.5")],
-        ["7.6",    "Spirit Vision Guide", "Ether Body Colors, Astral Projection Colors, Pathway Differences, Using Spirit Vision",         _get_page("Chapter 7.6")],
+        ["7",     "Ritualistic Magic",   "Core Skill, Effect Categories, Quick & Full Resolution, Power Sources, Failure & Consequences, Spirit World Creatures", _get_page("Chapter 7")],
+
         ["8",     "Equipment & Starting Wealth",  "Currency Conversion, Starting Wealth, Weapons, Equipment, Legal Licenses, Hired Allies",          _get_page("Chapter 8")],
         ["9",     "Sequence 9 Potion Effects",  "All 22 Pathways — Stats, Skills & Abilities Upon First Consumption",                             _get_page("Chapter 9")],
         ["10",    "Sequence 8 Potion Effects",  "All 22 Pathways — Stats, Skills & Abilities at Sequence 8",                                      _get_page("Chapter 10")],
@@ -998,10 +997,10 @@ def build():
     ))
     story.append(sp(3))
 
-    story += section("Secondary Characteristics")
+    story += section("Secondary Attributes")
     story.append(body("Derived from primary attributes at their starting values of 9:"))
     sec_data = [
-        ["Characteristic", "Base Formula", "Cost to Modify"],
+        ["Attribute", "Base Formula", "Cost to Modify"],
         ["HP (Hit Points)", "= ST (9)", "±2 pts per level"],
         ["Will", "= IQ (9)", "±5 pts per level"],
         ["Perception (Per)", "= IQ (9)", "±5 pts per level"],
@@ -1014,10 +1013,73 @@ def build():
     ]
     sec_data[0] = [Paragraph(c, S['TableHeader']) for c in sec_data[0]]
     for i in range(1, len(sec_data)):
-        sec_data[i] = [Paragraph(c, S['TableCell']) for c in sec_data[i]]
+        sec_data[i] = [Paragraph(c, S['TableCellCenter']) for c in sec_data[i]]
     sec_t = Table(sec_data, colWidths=[1.5*inch, 2.0*inch, 2.8*inch])
     sec_t.setStyle(table_style())
     story.append(sec_t)
+    story.append(sp(3))
+
+    story += subsection("Basic Lift & Carrying Capacity")
+    story.append(body(
+        "<b>Basic Lift (BL)</b> = (ST × ST) / 5 lbs. This determines how much you can carry without encumbrance. "
+        "If you have Lifting ST (a GURPS advantage), add it to your ST before calculating BL. "
+        "Lifting ST only affects lifting/carrying — it does NOT affect damage or HP."
+    ))
+    story.append(body(
+        "<b>Encumbrance Levels:</b> Each level reduces your move and dodge. Carrying more than BL imposes penalties:"
+    ))
+    lift_data = [
+        ["Encumbrance Level", "Max Load", "Move/Dodge Penalty"],
+        ["None (0)", "BL or less", "No penalty"],
+        ["Light (1)", "Up to 2 × BL", "-1 Move, -1 Dodge"],
+        ["Medium (2)", "Up to 3 × BL", "-2 Move, -2 Dodge"],
+        ["Heavy (3)", "Up to 6 × BL", "-3 Move, -3 Dodge"],
+        ["Very Heavy (4)", "Up to 10 × BL", "-4 Move, -4 Dodge"],
+        ["Overload (5)", "Up to 15 × BL", "-5 Move, -5 Dodge; cannot run"],
+    ]
+    lift_data[0] = [Paragraph(c, S['TableHeader']) for c in lift_data[0]]
+    for i in range(1, len(lift_data)):
+        lift_data[i] = [Paragraph(c, S['TableCellCenter']) for c in lift_data[i]]
+    story.append(Table(lift_data, colWidths=[2.0*inch, 2.0*inch, 2.3*inch], style=table_style()))
+    story.append(sp(2))
+    story.append(body(
+        "<b>Pushing/Lifting:</b> You can push or lift objects heavier than your load limit with a ST roll. "
+        "Success means you can move it at (BL/Max Load) × your move rate per turn. "
+        "Failure means you cannot budge it. Critical failure means you injure yourself (1d-2 damage)."
+    ))
+    story.append(sp(2))
+
+    story += subsection("Parry & Block Calculations")
+    story.append(body(
+        "<b>Parry</b> = (Weapon Skill ÷ 2) + 3. Must have a ready weapon or be unarmed. "
+        "Each successful parry after the first in the same turn incurs a cumulative -4 penalty "
+        "(-2 for fencing weapons like rapier, shortsword, or spear)."
+    ))
+    story.append(body(
+        "<b>Unarmed Parry:</b> Brawling or Wrestling ÷ 2 + 3. Boxing uses Boxing ÷ 2 + 3 but ignores the -3 "
+        "penalty for parrying weapons. Unarmed parries cannot stop ranged attacks."
+    ))
+    story.append(body(
+        "<b>Block</b> = (Shield Skill ÷ 2) + 3 + Shield DB (Defense Bonus). "
+        "A shield must be ready to block. Once you block an attack, you cannot block again until your next turn. "
+        "Light shields (buckler, target) give +1 DB; Heavy shields (kite, tower) give +2 DB."
+    ))
+    parry_data = [
+        ["Defense", "Formula", "Notes"],
+        ["Dodge", "Basic Speed + 3", "No active defense; penalty for encumbrance or bad footing"],
+        ["Parry (Armed)", "(Weapon Skill ÷ 2) + 3", "Weapon must be ready; cumulative -4 per extra parry (-2 fencing)"],
+        ["Parry (Unarmed)", "(Brawling or Wrestling ÷ 2) + 3", "Brawling parries weapons at -3; cannot parry ranged"],
+        ["Block", "(Shield Skill ÷ 2) + 3 + DB", "Once per turn; add shield DB (+1 light, +2 heavy)"],
+    ]
+    parry_data[0] = [Paragraph(c, S['TableHeader']) for c in parry_data[0]]
+    for i in range(1, len(parry_data)):
+        parry_data[i] = [Paragraph(c, S['TableCellCenter']) for c in parry_data[i]]
+    story.append(Table(parry_data, colWidths=[1.8*inch, 2.2*inch, 2.3*inch], style=table_style()))
+    story.append(sp(2))
+    story.append(body(
+        "<b>Retreat Bonus:</b> If you retreat (step back 1 hex as a free action), you gain +3 to Dodge, "
+        "+1 to Block, or +1 to Parry against one melee attack that turn."
+    ))
     story.append(sp(3))
 
     story += subsection("Burning FP & SPI to Modify Rolls")
@@ -1127,7 +1189,7 @@ def build():
     story.append(bullet("<b>3. Buy Advantages.</b> Innate gifts, unusual training, and social assets. Budget carefully."))
     story.append(bullet("<b>4. Take Disadvantages.</b> Flaws, obligations, and burdens. They give points back and create story hooks. Optional — up to -40 pts worth."))
     story.append(bullet("<b>5. Buy Skills.</b> The bulk of your points go here. Skills are what you actually do in play."))
-    story.append(bullet("<b>6. Record Secondary Characteristics.</b> HP, FP, Basic Speed, Basic Move, Perception, and Will are all derived automatically from your attributes."))
+    story.append(bullet("<b>6. Record Secondary Attributes.</b> HP, FP, Basic Speed, Basic Move, Perception, and Will are all derived automatically from your attributes."))
     story.append(sp(3))
 
     story += subsection("Pathways — Attribute Rules")
@@ -1234,7 +1296,7 @@ def build():
     story += subsection("Mental & Social Advantages")
     adv_mental = [
         ["Advantage", "Cost", "Effect"],
-        ["Charisma", "5 pts/level", "+1/level to reaction rolls and Influence skills (Leadership, Panhandling, Public Speaking, Savoir-Faire, Sex Appeal, Streetwise) [max 4 levels]"],
+        ["Charisma", "5 pts/level", "+1/level to Influence skills (Leadership, Panhandling, Public Speaking, Savoir-Faire, Sex Appeal, Streetwise); NPCs are predisposed to trust and listen to you [max 4 levels]"],
         ["Contact", "1–10 pts", "Reliable source of information or aid (varies by skill and frequency)"],
         ["Church Organisation Informant", "5–15 pts", "A representative of a church enforcement body (Nighthawks, Mandated Punishers, Machinery Hivemind, etc.) has chosen you as an informant. Receive help from authorities when in minor legal trouble or when caught using Beyonder powers without harm to innocents. Earn contribution points for important information or assistance, exchangeable for money or Beyonder formulas/ingredients. 5 pts: newly recruited, must prove your worth. 10–15 pts: trusted informant; the organisation's representative trusts your judgement."],
         ["Official Beyonder", "15 pts", "You operate under the sanction of a recognised church or organisation. Benefits: Revolver +2, Ritualistic Magic +1, Hidden Lore (Beyonders) +3, Occultism +2, Hermes Language (Broken). You have Legal Enforcement Powers as a sanctioned investigator. Drawback: Duty (to your organisation) — you can be called upon for assignments and must follow institutional protocol."],
@@ -1343,19 +1405,19 @@ def build():
 
     story += subsection("Appearance")
     story.append(body(
-        "How your character looks can have a measurable impact on social interactions. "
-        "The following levels of Appearance affect reactions from others:"
+        "How your character looks influences how NPCs treat you. "
+        "The following levels of Appearance guide the GM in determining realistic NPC responses:"
     ))
     app_data = [
-        ["Level", "Cost", "Reaction Modifier"],
-        ["Attractive", "+1 pt", "+1 to reaction rolls"],
-        ["Handsome / Beautiful", "+4 pts", "+2 to reaction rolls"],
-        ["Very Handsome / Very Beautiful", "+8 pts", "+3 to reaction rolls"],
-        ["Unattractive", "-4 pts", "-1 to reaction rolls"],
-        ["Ugly", "-8 pts", "-2 to reaction rolls"],
-        ["Hideous", "-16 pts", "-4 to reaction rolls"],
-        ["Monstrous", "-20 pts", "-5 to reaction rolls"],
-        ["Horrific", "-24 pts", "-6 to reaction rolls"],
+        ["Level", "Cost", "Effect"],
+        ["Attractive", "+1 pt", "People are subtly warmer to you; first impressions lean positive at the GM's discretion"],
+        ["Handsome / Beautiful", "+4 pts", "NPCs notice and treat you favourably; more inclined to listen and help (GM discretion)"],
+        ["Very Handsome / Very Beautiful", "+8 pts", "Your appearance draws attention; neutral NPCs tend to assume the best of you (GM discretion)"],
+        ["Unattractive", "-4 pts", "People are less inclined to engage with you favourably (GM discretion)"],
+        ["Ugly", "-8 pts", "NPCs are put off by your looks; first impressions suffer (GM discretion)"],
+        ["Hideous", "-16 pts", "Most people react with visible discomfort or avoidance (GM discretion)"],
+        ["Monstrous", "-20 pts", "Your appearance frightens or revolts ordinary people on sight (GM discretion)"],
+        ["Horrific", "-24 pts", "Your presence causes instinctive fear or revulsion in nearly everyone (GM discretion)"],
     ]
     app_data[0] = [Paragraph(c, S['TableHeader']) for c in app_data[0]]
     for i in range(1, len(app_data)):
@@ -1392,7 +1454,7 @@ def build():
         ["Fearlessness",            "2 pts/level", "+1 per level to Fright Checks; also grants immunity to intimidation from beings with fewer levels of Fearlessness than you. Vital in a world of horrors."],
         ["Fit",                     "5 pts",  "+1 to all HT rolls; recover FP at twice the normal rate"],
         ["Very Fit",                "15 pts", "+2 to all HT rolls; lose FP at half the normal rate; recover FP at twice the normal rate"],
-        ["Wealth: Comfortable",     "5 pts", "Good income; start with £5. Status 1 → +1 reaction from those impressed by wealth."],
+        ["Wealth: Comfortable",     "5 pts", "Good income; start with £5. Status 1 — those impressed by wealth treat you better (GM discretion)."],
     ]
     soc_adv[0] = [Paragraph(c, S['TableHeader']) for c in soc_adv[0]]
     for i in range(1, len(soc_adv)):
@@ -1451,9 +1513,10 @@ def build():
         ["Great Balance",      "10 pts", "+2 to avoid knockdown; +1 to Acrobatics, Climbing, Piloting"],
         ["Rapid Recovery",     "5 pts", "Stun durations halved; recover from knockdown in half normal time."],
         ["Flexibility",        "5 pts", "+3 to Climbing and Escape; ignore up to -3 close-quarters penalties."],
-        ["Double-Jointed",     "15 pts","+5 to Climbing and Escape; ignore up to -5 close-quarters penalties; any body part bends any way."],
-        ["Acute Vision",       "2 pts", "+2 to Vision rolls; notice details at a distance, read lips, spot hidden objects."],
-        ["Acute Hearing",      "2 pts", "+2 to Hearing rolls; detect faint sounds, eavesdrop through walls, identify speech in noise."],
+         ["Double-Jointed",     "15 pts","+5 to Climbing and Escape; ignore up to -5 close-quarters penalties for wrestling or grappling; any body part bends any way."],
+          ["Acute Vision",       "5 pts", "+2 to Vision rolls; notice details at a distance, read lips, spot hidden objects."],
+         ["Incisive Vision",    "10 pts", "Upgraded Acute Vision (+4 to all Vision rolls); can read micro-expressions at 10m, see through minor visual illusions, spot concealed objects automatically."],
+         ["Acute Hearing",      "2 pts", "+2 to Hearing rolls; detect faint sounds, eavesdrop through walls, identify speech in noise."],
         ["Resistant (specify)", "3 or 5 pts", "HT rolls to resist a specific category at +3 (3 pts) or +8 (5 pts). Common choices: Disease, Poison, Temperature Extremes."],
         ["Outdoorsman", "10 pts/level", "+1 per level to all Outdoor skills (Camouflage, Fishing, Naturalist, Navigation, Survival, Tracking, Weather Sense). Max 4 levels."],
     ]
@@ -1514,8 +1577,8 @@ def build():
     story += subsection("Unusual Gifts")
     sup_gift = [
         ["Advantage", "Cost", "Effect / When It Triggers"],
-        ["Luck",                "10 pts", "1 reroll per session — may reroll any one failed roll."],
-        ["Beckoning Luck",      "20 pts", "2 rerolls per session — reroll any failed roll, usable at any time. If the re-roll also fails there is no additional effect — and fate may balance later."],
+        ["Luck",                "15 pts", "1 reroll per session — may reroll any one failed roll."],
+        ["Beckoning Luck",      "30 pts", "2 rerolls per session — reroll any failed roll, usable at any time. If the re-roll also fails there is no additional effect — and fate may balance later."],
         ["Born Under a Named Star","15 pts","Seers and Diviners who read your fate always notice something unusual. You register as 'marked' in ways they cannot fully interpret."],
         ["Mystical Item",       "5–15 pts", "A single mystical item you already possess, defined with the GM. Cost scales with power: a minor charm (5 pts), a useful tool (10 pts), or a significant piece of equipment (15 pts). The item should match one of the 22 pathways' domains. If lost or destroyed, rename this advantage to 'Mystical Item (Lost)' — no refund."],
         ["Charmed Object",      "5 pts",  "One item you own provides +1 to one specific skill when used (specify item and skill). Lost permanently if the item is destroyed."],
@@ -1576,8 +1639,8 @@ def build():
     story += subsection("Core Disadvantages")
     disadv_data = [
         ["Disadvantage", "Value", "When It Triggers"],
-        ["Wealth: Poor",       "-15",       "Start with 5 soli; boarding house; barely afford basic food. Status −1 → −1 reaction from status-conscious NPCs."],
-        ["Wealth: Dead Broke", "-25",       "Start with £0; no home; beg or steal for every meal. Status −2 → −2 reaction from status-conscious NPCs."],
+        ["Wealth: Poor",       "-15",       "Start with 5 soli; boarding house; barely afford basic food. Status −1 — status-conscious NPCs look down on you (GM discretion)."],
+        ["Wealth: Dead Broke", "-25",       "Start with £0; no home; beg or steal for every meal. Status −2 — most NPCs treat you with suspicion or disdain (GM discretion)."],
         ["Wealth: Struggling","-10",       "Start with 15 soli; modest room; occasional luxuries"],
         ["Curious (12)",       "-5",        "Must roll vs. 12 or investigate any mystery encountered"],
         ["Greed (12)",         "-15",       "Must roll vs. 12 or take any opportunity for significant profit"],
@@ -1628,7 +1691,7 @@ def build():
         ["Absent-Mindedness",    "-15 pts",      "-3 to skill rolls requiring concentration or organisation in everyday life; must roll vs. IQ to remember to do something if interrupted or distracted. In combat, may forget to reload, change tactics, or use special abilities (GM's discretion)."],
         ["Addiction: Laudanum",  "-10 pts",      "Must use daily or suffer -2 to all rolls from withdrawal; supply costs drain income."],
         ["Addiction: Tobacco",   "-3 pts",       "Minor withdrawal irritability (-1 to Will) if unable to smoke for a full day."],
-        ["Chronic Insomnia",     "-5 pts",       "Lose 1 FP each morning that cannot be recovered through rest; rolls requiring sustained concentration at -1."],
+        ["Chronic Insomnia",     "-10 pts",      "Lose 1 FP each morning that cannot be recovered through rest; rolls requiring sustained concentration at -1."],
         ["Class Resentment",     "-5 pts",       "Must roll vs. Will-2 or express hostility when in prolonged contact with the resented class."],
         ["Compulsive Gambling",  "-10 pts",      "Regular income loss; prone to debt; requires Will roll at -2 to leave a game while ahead."],
         ["Duty-Bound",           "-5 to -10 pts","An obligation takes priority over personal safety. Must regularly sacrifice time, money, or risk to fulfil it."],
@@ -1638,10 +1701,10 @@ def build():
         ["Guilt",                "-5 pts",       "-1 to Will in situations that echo the original act; may be exploited by people who know the truth."],
         ["Impulsive",            "-10 pts",      "Must roll vs. IQ-2 to pause and plan; failure means you act on the first reasonable impulse in any urgent situation."],
         ["Reckless",             "-5 pts",       "-1 to any roll where caution would be smarter; must roll vs. Will to back down from a physical challenge."],
-        ["Reputation: Troublemaker","-5 pts",    "Employers, landlords, and officials treat you with pre-emptive suspicion; -2 to first reactions in formal settings."],
-        ["Social Anxiety",       "-5 pts",       "-2 to social skill rolls in groups of 6+; -3 when addressing strangers of higher status."],
+        ["Reputation: Troublemaker","-5 pts",    "Employers, landlords, and officials treat you with pre-emptive suspicion (GM discretion)."],
+        ["Social Anxiety",       "-10 pts",      "-2 to social skill rolls in groups of 6+; -3 when addressing strangers of higher status."],
         ["Stubborn",             "-5 pts",       "Must roll vs. Will-3 to reverse your stated position in the same scene, even when clearly wrong."],
-        ["Superstitious (mundane)","-3 pts",     "If warding routine is disrupted, -1 to all rolls for the day; will go out of their way to observe superstitions."],
+        ["Superstitious (mundane)","-5 pts",     "If warding routine is disrupted, -1 to all rolls for the day; will go out of their way to observe superstitions."],
         ["Reluctant Killer",     "-5 pts",       "-4 to hit recognizable people with deadly force (-2 if face hidden); cannot Aim. If you kill a recognizable person, become morose for 3d days — Will rolls required to use violence again."],
         ["Cannot Harm Innocents", "-10 pts",     "Will not use deadly force when innocent bystanders might be affected, or against enemies not using deadly force on you. Non-deadly force is acceptable."],
         ["Cannot Kill",          "-15 pts",      "Unwilling to kill anyone, even through omission, or to allow comrades to kill. If responsible for a death, react as Reluctant Killer (-5)."],
@@ -1656,7 +1719,7 @@ def build():
         ["Clueless",             "-10 pts",      "-3 to all social skill rolls; generally miss social cues and subtlety. You do not understand subtext, sarcasm, or implication."],
         ["Unfit",                "-5 pts",       "-1 to all HT rolls; recover FP at half normal rate. Unfit for sustained physical exertion."],
         ["Vow (specify)",        "-5 to -15 pts","A solemn promise that restricts your actions. Common examples: Poverty (give away all wealth beyond subsistence) -10, Partial Silence (limited speech) -5, Vegetarian -5."],
-        ["Charity",              "-10 pts",      "Cannot ignore genuine need. Must roll vs. Will to avoid helping anyone who asks for assistance you can reasonably provide. May be exploited."],
+        ["Charity (12)",          "-15 pts",      "Cannot ignore genuine need. Must roll vs. 12 or help anyone who asks for assistance you can reasonably provide. May be exploited."],
         ["Loner",                "-5 pts",       "Must roll vs. Will to spend extended time in groups larger than 3-4 people. Seek solitude when stressed; -1 to social rolls in crowds."],
         ["Bloodlust",            "-10 pts",      "Must go for killing blows in combat. IQ roll necessary to accept a surrender or take a prisoner. Downed foes get an extra shot to make sure."],
     ]
@@ -1738,7 +1801,7 @@ def build():
         ["Disadvantage", "Value", "Trigger / Notes"],
         ["Chronophobia (Temporal)","-10 pts","Irrational terror of something time-related (clocks stopping, mirrors, specific hours). Triggered: immediate Fright Check at -3."],
         ["Dead-Eyed",            "-5 pts",  "-2 to first-impression social rolls with strangers; animals are skittish around you; children sometimes cry."],
-        ["Unsettling Appearance", "-4 pts",  "-1 to all reaction rolls. Your presence instinctively disturbs or repels others — a common consequence of Abyss and Chained Pathway potions."],
+        ["Unsettling Appearance", "-4 pts",  "Your presence instinctively disturbs or repels others — a common consequence of Abyss and Chained Pathway potions. NPCs react with unease or distrust (GM discretion)."],
         ["Entity Fixation",      "-10 pts", "-1 to all rolls when a specific entity type is present nearby; -2 to any roll that requires you to ignore them."],
         ["Fear of Silence",      "-5 pts",  "In complete silence — underground, at sea, in empty buildings — must roll vs. Will-2 or feel compelled to speak or make noise."],
         ["Haunted",              "-10 pts", "A specific ghost follows you. Other spiritual beings notice it; it may interfere with rituals; can be used as leverage by those who know."],
@@ -1923,8 +1986,8 @@ def build():
         ["Electrician", "IQ/Average", "Work with electrical systems"],
         ["Inventor!", "IQ/Wildcard", "Wildcard skill covering all invention, engineering, and mechanical tasks"],
         # SPIRITUAL
-        ["— SPIRITUAL SKILLS (SPI-based) —", "", "SPI skills cannot be raised with character points — they improve only through Sequence progression and pathway bonuses."],
-        ["Spiritual Intuition", "SPI/Hard", "Sense fate-changes and danger through spirit"],
+        ["— SPIRITUAL SKILLS (SPI-based) —", "", "Spiritual Intuition cannot be raised with character points — it improves only through Sequence progression. Spiritual Perception and Divination Arts can be purchased."],
+        ["Spiritual Intuition", "SPI/Hard", "Sense fate-changes and danger through spirit (cannot buy; pathway only)"],
         ["Spiritual Perception", "SPI/Average", "Detect hidden spirits and supernatural phenomena"],
         ["Divination Arts", "SPI/Hard", "Perform focused divination: pendulum, coin, dowsing, dream interpretation, scrying, tarot"],
         # KNOWLEDGE (continued)
@@ -2232,7 +2295,7 @@ def build():
     story += subsection("3. Spirit Vision")
     story.append(body(
         "See the non-physical aspects of beings — their Ether Body (health), Spirit Body (emotions), and auras. "
-        "<b>Cost:</b> 1 SPI per minute."
+        "<b>Cost:</b> 1 SPI per activation, regardless of duration."
     ))
     sv_data = [
         ["Aura Layer", "Color Meanings"],
@@ -2586,6 +2649,24 @@ def build():
     summary_t.setStyle(table_style())
     story.append(summary_t)
     story.append(sp(3))
+
+    story += subsection("Beyonder Weapons")
+    story.append(body(
+        "<b>Beyonder Weapons</b> are weapons that have been augmented by Beyonder means or have Beyonder "
+        "characteristics embedded in them. This includes: a spirit channel's power manifesting as a weapon, "
+        "a sealed artifact in weapon form, a mundane weapon reinforced by ritual or spirituality, and any "
+        "weapon conjured by a Beyonder ability."
+    ))
+    story.append(body(
+        "Some Beyonder weapons deal <b>spiritual damage</b> alongside physical damage — they can harm spirits, "
+        "incorporeal beings, and targets with physical DR as though it were a Beyonder-level effect. "
+        "Others enhance only physical properties (sharper edge, more durable, faster swing). The specific "
+        "effect is determined by the weapon's nature and the GM. "
+        "Mundane weapons without Beyonder properties deal <b>half damage</b> to spiritually reinforced targets "
+        "(such as higher-Sequence Beyonders with active spiritual defenses) and <b>no damage</b> to "
+        "incorporeal spirits, ghostly entities, or beings that exist primarily in the Spirit World."
+    ))
+    story.append(sp(3))
     
     story += section("Ranged Combat")
     story.append(body(
@@ -2907,15 +2988,24 @@ def build():
         ["Trigger", "Will Modifier"],
         ["Minor supernatural event (strange sounds, moved objects)", "+2"],
         ["Beyonder using powers (visible supernatural ability)", "+0"],
-        ["Encountering a monster or undead creature", "-2 to -6"],
-        ["Witnessing a supernatural death", "-4"],
-        ["Outer God influence or manifestation", "-8 or worse"],
+        ["Encountering a Seq 9 equivalent monster", "-2"],
+        ["Encountering a Seq 8 equivalent monster", "-3"],
+        ["Encountering a Seq 7 equivalent monster", "-4"],
+        ["Encountering a Seq 6 equivalent monster", "-5"],
+        ["Encountering a Seq 5 equivalent monster", "-6"],
+        ["Encountering a Seq 4 equivalent monster (Saint)", "-7"],
+        ["Encountering a Seq 3 equivalent monster (Saint)", "-8"],
+        ["Encountering a Seq 2 equivalent monster (Angel)", "-10"],
+        ["Encountering a Seq 1 equivalent monster (Angel)", "-12"],
+        ["Encountering a Seq 0 equivalent (God)", "-15"],
+        ["Outer God influence or manifestation", "-20 or worse"],
+        ["Frightening situations with no Beyonder influence", "GM discretion"],
     ]
     fright_data[0] = [Paragraph(c, S['TableHeader']) for c in fright_data[0]]
     for i in range(1, len(fright_data)):
         fright_data[i] = [Paragraph(fright_data[i][j],
             S['TableCellCenter'] if j==1 else S['TableCell']) for j in range(2)]
-    story.append(Table(fright_data, colWidths=[3.8*inch, 1.5*inch], style=table_style()))
+    story.append(Table(fright_data, colWidths=[4.0*inch, 1.5*inch], style=table_style()))
     story.append(sp(3))
 
     story += subsection("Fright / Awe / Confusion — Effects Table")
@@ -2973,6 +3063,111 @@ def build():
             S['TableCellCenter'] if j==0 else S['TableCell']) for j in range(4)]
     story.append(Table(fright_effects, colWidths=[0.6*inch, 2.1*inch, 2.1*inch, 2.1*inch], style=table_style()))
     story.append(sp(3))
+
+    story += section("Spirit Vision — A Complete Guide")
+    story.append(body(
+        "The spirit sees what the eye cannot. Through Spirit Vision, Beyonders perceive the auras "
+        "of life — colors of emotion, threads of health, darkness of corruption. "
+        "Activate by expending 1 SPI."
+    ))
+    story.append(sp(3))
+
+    story += section("A. Astral Projection Colors")
+    story.append(body(
+        "The Astral Projection lies beneath the Ether Body and reveals emotional state:"
+    ))
+    
+    astral_data = [
+        ["Color", "Meaning"],
+        ["Red", "Passion, excitement, anger"],
+        ["Orange", "Warmth, satisfaction"],
+        ["Yellow", "Happiness, extroversion"],
+        ["Green", "Calm, peace, balance"],
+        ["Blue", "Coldness, stillness, logic"],
+        ["White", "Brightness, ambition"],
+        ["Dark", "Worry, sorrow, fear"],
+        ["Purple", "Spirituality, madness"],
+    ]
+    astral_data[0] = [Paragraph(c, S['TableHeader']) for c in astral_data[0]]
+    for i in range(1, len(astral_data)):
+        astral_data[i] = [Paragraph(c, S['TableCell']) for c in astral_data[i]]
+    story.append(Table(astral_data, colWidths=[1.0*inch, 5.3*inch], style=table_style()))
+
+    story.append(sp(2))
+
+    story += section("B. Ether Body Colors")
+    story.append(body(
+        "The Ether Body is the outermost layer — shows physical health:"
+    ))
+    
+    ether_data = [
+        ["Body Region", "Color"],
+        ["Limbs active", "Red"],
+        ["Brain", "Purple"],
+        ["Waste systems", "Orange"],
+        ["Digestion", "Yellow"],
+        ["Heart/reg", "Green"],
+        ["Nerves", "Blue"],
+        ["Healthy", "White"],
+        ["Ill", "Dark/Thin"],
+    ]
+    ether_data[0] = [Paragraph(c, S['TableHeader']) for c in ether_data[0]]
+    for i in range(1, len(ether_data)):
+        ether_data[i] = [Paragraph(c, S['TableCell']) for c in ether_data[i]]
+    story.append(Table(ether_data, colWidths=[1.3*inch, 3.9*inch], style=table_style()))
+
+    story.append(sp(2))
+    story.append(body("A balanced body appears <b>white</b>. Darkness or thinning indicates illness."))
+
+    story.append(sp(2))
+    story += section("C. Pathway Differences")
+    story.append(body(
+        "Not all Beyonders perceive equally. Pathway and Sequence determine what can be seen:"
+    ))
+    
+    path_data = [
+        ["Pathway (Seq 9)", "Sequence", "Spirit Vision Ability"],
+        ["Seer (Fool)", "9", "Standard: Ether Body + Astral"],
+        ["Mystery Pryer (Hermit)", "9", "<b><font color='#C0392B'>Eyes of Mystery Prying:</font></b> See truth, reality, Astral Body"],
+        ["Spectator (Visionary)", "9", "Enhanced: Read emotions & thoughts"],
+        ["Sleepless (Darkness)", "9", "Limited: Spiritual entities only (no Ether Body analysis)"],
+        ["Corpse Collector (Death)", "9", "Passive: See spirits & undead without activation"],
+    ]
+    path_data[0] = [Paragraph(c, S['TableHeader']) for c in path_data[0]]
+    for i in range(1, len(path_data)):
+        path_data[i] = [Paragraph(c, S['TableCell']) for c in path_data[i]]
+    story.append(Table(path_data, colWidths=[1.2*inch, 0.9*inch, 4.2*inch], style=table_style()))
+
+    story.append(sp(2))
+    story += section("D. Reading Spirit Vision")
+    story.append(body(
+        "<b>Using <font color='#C0392B'>Spirit Vision:</font></b> Activate by expending 1 SPI (one activation, no per-minute cost to maintain). "
+        "Make a Perception-based roll to interpret correctly."
+    ))
+    
+    roll_data = [
+        ["Roll", "Effect"],
+        ["Success", "Identify primary emotion or general health"],
+        ["Success by 3+", "Detect specific feelings"],
+        ["Success by 5+", "Sense recent events"],
+        ["Critical", "Full reading"],
+        ["Failure", "Incorrect reading"],
+    ]
+    roll_data[0] = [Paragraph(c, S['TableHeader']) for c in roll_data[0]]
+    for i in range(1, len(roll_data)):
+        roll_data[i] = [Paragraph(c, S['TableCell']) for c in roll_data[i]]
+    story.append(Table(roll_data, colWidths=[1.3*inch, 4.9*inch], style=table_style()))
+
+    story.append(sp(2))
+    story.append(body(
+        "<b>Special Forms:</b> Ether Body Awareness (Seer), "
+        "<b><font color='#C0392B'>Eyes of Mystery Prying</font></b> (Mystery Pryer), "
+        "Enhanced Emotions (Spectator), "
+        "Limited Form (Sleepless), "
+        "Passive Spirit Vision (Corpse Collector)."
+    ))
+
+    story.append(sp(4))
 
     story += chapter("Chapter 6: The Beyonder System")
 
@@ -3037,6 +3232,13 @@ def build():
         dig_data[i] = [Paragraph(dig_data[i][j],
             S['TableCellCenter'] if j==1 else S['TableCell']) for j in range(2)]
     story.append(Table(dig_data, colWidths=[3.0*inch, 3.3*inch], style=table_style()))
+    story.append(sp(2))
+    story.append(body(
+        "<b>Character Point Investment:</b> A Beyonder may spend earned character points to accelerate digestion "
+        "at a rate of <b>1 character point = 1% digestion progress</b>. This represents the Beyonder using "
+        "experience and insight to better understand their potion's nature. "
+        "Digestion progress does <b>not</b> decay; once gained, it is permanent."
+    ))
     story.append(sp(3))
 
     story += section("CoR — Corruption")
@@ -3331,385 +3533,6 @@ def build():
     story.append(Table(med_data, colWidths=[1.7*inch, 4.6*inch], style=table_style()))
     story.append(sp(3))
 
-    story += subsection("Unique Sealed Artifacts")
-    story.append(body(
-        "The following are individual Sealed Artifacts of note — unique items documented by the "
-        "churches or encountered in the field. Each has its own history, abilities, and dangers."
-    ))
-    story.append(sp(3))
-
-    # ── Gauntlet of the False Baron ──
-    story.append(Paragraph(
-        "<b>Sealed Artifact 2–17: Gauntlet of the False Baron</b> "
-        "<i>(Black Emperor Pathway · Grade 2 · Seq 7 equivalent)</i>",
-        S['BodyBold']
-    ))
-    story.append(sp(1))
-    story.append(body(
-        "<b>Appearance:</b> A gauntlet of blackened leather reaching mid-forearm, "
-        "stitched with silver thread in intricate patterns resembling contract clauses and legal seals. "
-        "The stitching occasionally rearranges itself when not observed directly. "
-        "The palm bears a faint, warm pressure as if perpetually holding an invisible coin. "
-        "Rumoured to have been crafted in the late Fourth Epoch from the Beyonder characteristic "
-        "of a Briber who attempted to bribe Death itself — and failed."
-    ))
-    story.append(sp(2))
-
-    # Ability table
-    gauntlet_abilities = [
-        ["Ability", "SPI Cost", "Effect"],
-        ["Bribe — Weaken",
-         "1 SPI",
-         "Touch the gauntlet's palm to a target or a held object as an Attack maneuver. "
-         "The target suffers -3 to all attack and active defense rolls for 5 turns "
-         "(penalty drops by 1 each turn: -3 -> -2 -> -1 -> 0). "
-         "If the target cannot be touched directly, a symbolic object thrown at them "
-         "(DX roll to land) works at half duration (3 turns, -3 -> -2 -> -1 -> 0)."],
-        ["Bribe — Arrogance",
-         "1 SPI",
-         "As above, but the target rolls IQ at -2 each turn. On a failure, they are "
-         "compelled to make a reckless or arrogant action (GM's discretion). "
-         "Penalty diminishes by 1 each turn (-2 -> -1 -> 0). Duration: 3 turns."],
-        ["Minor Distortion",
-         "2 SPI",
-         "Snap the gauntlet's fingers as a free action to twist a single incoming ranged "
-         "attack (bullet, arrow, thrown weapon) within 10 meters. The attack's trajectory "
-         "curves harmlessly away — the attacker must roll again at -4 or miss entirely. "
-         "Cannot be used on melee attacks or area effects. "
-         "Once per round."],
-        ["False Majesty",
-         "1 SPI/turn",
-         "The gauntlet exudes an aura of command. As a Concentrate maneuver, the wearer "
-         "can force a single target within 5 meters to roll Will. On failure, the target "
-         "hesitates — they cannot attack the wearer directly on their next turn "
-         "(they may defend themselves and act otherwise). Maintained by spending 1 SPI each turn."],
-    ]
-    gauntlet_abilities[0] = [Paragraph(c, S['TableHeader']) for c in gauntlet_abilities[0]]
-    for i in range(1, len(gauntlet_abilities)):
-        gauntlet_abilities[i] = [
-            Paragraph(gauntlet_abilities[i][0], S['TableCell']),
-            Paragraph(gauntlet_abilities[i][1], S['TableCellCenter']),
-            Paragraph(gauntlet_abilities[i][2], S['TableCell']),
-        ]
-    story.append(Table(gauntlet_abilities, colWidths=[1.4*inch, 0.7*inch, 4.2*inch],
-                       style=table_style()))
-    story.append(sp(2))
-
-    story.append(Paragraph("<b>Drawbacks:</b>", S['BodyBold']))
-    story.append(bullet(
-        "<b>Corruptive Influence.</b> Each day the gauntlet is worn for more than one hour, "
-        "the wearer must roll Will. On failure, they gain a temporary Disadvantage for the rest "
-        "of the day: Greed (12), Overconfidence (12), or Trickster Mentality "
-        "(always seeking a loophole, -1 to cooperative skill rolls). The GM chooses which. "
-        "After 7 cumulative failures, the Disadvantage becomes permanent until the artifact is "
-        "relinquished and the wearer undergoes spiritual cleansing."
-    ))
-    story.append(bullet(
-        "<b>Soul's Price.</b> Each use of any ability costs 1 HP in addition to SPI. "
-        "The gauntlet draws blood from the wearer's hand — dark veins creep up the arm for "
-        "several minutes after use."
-    ))
-    story.append(bullet(
-        "<b>Withdrawal.</b> If the gauntlet is not used for 24 hours, the wearer suffers "
-        "a splitting headache (-2 to all IQ and Per rolls) until they use at least one ability. "
-        "If 48 hours pass without use, the gauntlet tightens painfully, dealing 1d6-2 "
-        "crushing damage to the hand and arm (ignores DR; cannot be healed until used)."
-    ))
-    story.append(sp(2))
-    story.append(Paragraph(
-        "<b>Sealing Instructions:</b> Keep in a lead-lined box etched with the Seven "
-        "Seals of Contract. The gauntlet must be offered a voluntary sacrifice of one silver "
-        "coin per week, placed inside the box. If the offering is missed for three consecutive "
-        "weeks, the gauntlet begins whispering temptations to anyone within 10 meters (Will-2 "
-        "to resist acting on them).",
-        S['Body']
-    ))
-    story.append(sp(3))
-
-    # ── Echoing Coin of the Serpent ──
-    story.append(Paragraph(
-        "<b>Sealed Artifact 3–05: Echoing Coin of the Serpent</b> "
-        "<i>(Error Pathway · Grade 3 · Seq 8 equivalent)</i>",
-        S['BodyBold']
-    ))
-    story.append(sp(1))
-    story.append(body(
-        "<b>Appearance:</b> A gold coin the size of a Loen sixpence, stamped with the"
-        " profile of a crowned serpent on one side and a labyrinth of concentric circles"
-        " on the other. The coin is unnervingly warm to the touch and, when held close"
-        " to the ear, emits a faint rhythmic hum — like a distant clock ticking in"
-        " reverse. It was discovered in the ruins of a Fourth Epoch swindler's vault,"
-        " alongside three identical coins that had all rusted to dust the moment the"
-        " vault was opened."
-    ))
-    story.append(sp(2))
-
-    coin_abilities = [
-        ["Ability", "SPI Cost", "Effect"],
-        ["Duplicate",
-         "1 SPI",
-         "Place the coin atop any single non-magical, non-living object no larger than"
-         " a loaf of bread and speak the activation incantation (\"As above, so below\")."
-         " After 1 minute of concentration, a perfect duplicate of the object appears"
-         " beside the original. The duplicate is physically identical but has no spiritual"
-         " or Beyonder properties — it cannot replicate Mystical Items, potions,"
-         " characteristics, or artifacts. The original is unaffected. Maximum one"
-         " duplicate per hour."],
-        ["Minor Misfortune",
-         "1 SPI",
-         "Flick the coin into the air as a free action. While it is spinning, choose a"
-         " target within 5 meters. For the next 3 turns, that target suffers -1 to all"
-         " rolls (attacks, defenses, skill checks) as minor coincidences go against them"
-         " (loose cobblestone, gust of wind, slipping grip). The coin lands and the"
-         " effect ends. Usable once per scene."],
-        ["Worm's Whim",
-         "2 SPI",
-         "Press the coin firmly against a non-living surface no larger than a door and"
-         " will it to merge. The coin sinks into the material and creates a temporary"
-         " passage — a subtle distortion that creatures can pass through as if the wall"
-         " were an open archway. The passage lasts 5 minutes or until the coin is"
-         " retrieved (which collapses it instantly). The coin cannot be retrieved from"
-         " inside the passage and must be collected from the opposite side."],
-    ]
-    coin_abilities[0] = [Paragraph(c, S['TableHeader']) for c in coin_abilities[0]]
-    for i in range(1, len(coin_abilities)):
-        coin_abilities[i] = [
-            Paragraph(coin_abilities[i][0], S['TableCell']),
-            Paragraph(coin_abilities[i][1], S['TableCellCenter']),
-            Paragraph(coin_abilities[i][2], S['TableCell']),
-        ]
-    story.append(Table(coin_abilities, colWidths=[1.2*inch, 0.7*inch, 4.4*inch],
-                       style=table_style()))
-    story.append(sp(2))
-
-    story.append(Paragraph("<b>Drawbacks:</b>", S['BodyBold']))
-    story.append(bullet(
-        "<b>Time Debt.</b> Each use of the coin's abilities ages the user by one day"
-        " (visible as a momentary grey streak in the hair or a new wrinkle). The aging"
-        " is cosmetic and temporary — it fades over 24 hours — but if the coin is used"
-        " more than 7 times in a single week, the aging becomes permanent and the user"
-        " loses 1 HP permanently until the coin is relinquished for at least a month."
-    ))
-    story.append(bullet(
-        "<b>Coin's Greed.</b> Once per day, if the user attempts to discard, give away,"
-        " or destroy the coin, it teleports back into their pocket or purse within"
-        " 1d10 minutes. The coin can only be permanently relinquished through a formal"
-        " ritual (Ritualistic Magic -2) or by transferring it to a willing new owner"
-        " who accepts the burden."
-    ))
-    story.append(bullet(
-        "<b>Echoing Whispers.</b> While in possession of the coin, the user occasionally"
-        " hears faint whispers of past owners' conversations — typically lies,"
-        " betrayals, or temptations. During moments of stress (combat, chase,"
-        " interrogation), the GM may call for a Will-1 roll. On failure, the user"
-        " is distracted for one turn (-2 to active defenses or skill rolls)."
-    ))
-    story.append(sp(2))
-    story.append(Paragraph(
-        "<b>Sealing Instructions:</b> Place the coin in a bag of lead shot and submerge"
-        " it in holy water blessed by a priest of the Evernight Goddess. The container"
-        " must be stored in a room without windows or clocks — timekeeping devices of"
-        " any kind cause the coin to hum audibly. The water must be changed every new"
-        " moon. If the coin begins ticking audibly through the lead, it has successfully"
-        " deceived the seal and should be immediately reclassified as Grade 2 or higher.",
-        S['Body']
-    ))
-    story.append(sp(3))
-
-    # ── Candle of Shared Slumber ──
-    story.append(Paragraph(
-        "<b>Sealed Artifact 2–11: Candle of Shared Slumber</b> "
-        "<i>(Darkness Pathway · Grade 2 · Seq 6 equivalent)</i>",
-        S['BodyBold']
-    ))
-    story.append(sp(1))
-    story.append(body(
-        "<b>Appearance:</b> A tall, tapered candle of deep purple wax flecked with silver"
-        " particles that shimmer like distant stars. It stands approximately 30 cm tall"
-        " and burns with a pale, smokeless flame that sheds no heat. The candle never"
-        " melts or shortens during normal use — it only diminishes when one of its"
-        " abilities is activated. When not lit, the wax exudes a faint scent of"
-        " night-blooming jasmine and old parchment. The candle was recovered from a"
-        " sealed crypt beneath the Cathedral of the Evernight Goddess in Backlund,"
-        " where it had been burning for an estimated 800 years without perceptible"
-        " consumption."
-    ))
-    story.append(sp(2))
-
-    candle_abilities = [
-        ["Ability", "SPI Cost", "Effect"],
-        ["Slumber",
-         "1 SPI",
-         "Light the candle as a Concentrate maneuver. All living creatures within a"
-         " 5-meter radius must roll HT-2 or fall into a deep, dreamless sleep for"
-         " 1d10 minutes. Those who succeed are drowsy (-1 to all rolls) for 3 turns."
-         " The flame gutters and the candle shortens by 1 cm. Sleeping creatures can"
-         " only be awakened by taking damage or by a successful First Aid roll at -4."],
-        ["Shared Dream",
-         "2 SPI",
-         "Light the candle and focus on a willing or unconscious target within 10 meters"
-         " as a Concentrate maneuver for 3 turns. The user enters a shared dream with"
-         " the target, enabling direct conversation, memory exploration, or the planting"
-         " of suggestions. The user may stay in the dream for up to 10 minutes of"
-         " real time (which may feel much longer in-dream). The candle shortens by 3 cm."
-         " If the target is unwilling, they may resist with a Will-2 roll each turn of"
-         " the focusing period."],
-        ["Extinguish Memory",
-         "3 SPI",
-         "Pinch out the candle's flame with bare fingers (deals 1 HP burn damage to the"
-         " user — this damage is real and cannot be prevented by DR). Choose a target"
-         " within 5 meters. One specific memory the user is aware of is erased from the"
-         " target's mind — they lose all recollection of that event, person, or piece"
-         " of knowledge. The memory is not destroyed but stored within the candle wax."
-         " The candle shortens by 5 cm. Restoring the memory requires re-lighting the"
-         " candle from the same wax pool, or a Miracle-level ritual."],
-    ]
-    candle_abilities[0] = [Paragraph(c, S['TableHeader']) for c in candle_abilities[0]]
-    for i in range(1, len(candle_abilities)):
-        candle_abilities[i] = [
-            Paragraph(candle_abilities[i][0], S['TableCell']),
-            Paragraph(candle_abilities[i][1], S['TableCellCenter']),
-            Paragraph(candle_abilities[i][2], S['TableCell']),
-        ]
-    story.append(Table(candle_abilities, colWidths=[1.3*inch, 0.7*inch, 4.3*inch],
-                       style=table_style()))
-    story.append(sp(2))
-
-    story.append(Paragraph("<b>Drawbacks:</b>", S['BodyBold']))
-    story.append(bullet(
-        "<b>Dream Bleed.</b> Every time the candle is used, the user must roll Will-0."
-        " On failure, fragments of dreams — not their own — intrude upon their sleep"
-        " that night. These dreams contain images from the minds of previous users."
-        " After 5 such failures, the user begins experiencing waking hallucinations"
-        " (glimpses of strangers' memories) during moments of quiet, imposing -1 to"
-        " Perception rolls in calm environments."
-    ))
-    story.append(bullet(
-        "<b>Candle's Hunger.</b> The candle must be fed at least one hour of"
-        " uninterrupted flame every 7 days, or it begins attracting ghosts and"
-        " wandering spirits within a 100-meter radius. These entities are not"
-        " hostile per se — they are drawn to the candle's lingering dream energy —"
-        " but their presence complicates stealth, sleep, and spiritual work."
-    ))
-    story.append(bullet(
-        "<b>Burns True.</b> The fire of this candle, though cool to objects, burns"
-        " living flesh as if it were white-hot iron. Any creature that touches the"
-        " flame takes 1d6 burning damage that ignores mundane armour. This damage"
-        " is spiritual in nature — the wound aches in moonlight and cannot be healed"
-        " by mundane means until the next dawn."
-    ))
-    story.append(sp(2))
-    story.append(Paragraph(
-        "<b>Sealing Instructions:</b> The candle must be kept in a bell jar of"
-        " lead crystal on an altar draped in black velvet. It must never be exposed"
-        " to direct sunlight or the light of a full moon. Once per month, a prayer"
-        " to the Evernight Goddess must be recited over it. If the candle begins"
-        " burning on its own, it indicates possession by an external intelligence —"
-        " the seal has been breached and emergency measures are required.",
-        S['Body']
-    ))
-    story.append(sp(3))
-
-    # ── The Peerless Flagon ──
-    story.append(Paragraph(
-        "<b>Sealed Artifact 1–04: The Peerless Flagon</b> "
-        "<i>(Sun Pathway · Grade 1 · Seq 4 equivalent)</i>",
-        S['BodyBold']
-    ))
-    story.append(sp(1))
-    story.append(body(
-        "<b>Appearance:</b> A simple ceramic flagon of unglazed earthenware, roughly"
-        " 20 cm tall, with a single symbol fired into its side — the Radiant Sun in"
-        " full glory with twelve rays. It is extraordinarily heavy for its size"
-        " (approximately 7 kg) and always feels slightly warm. When its stopper is"
-        " removed, a golden light spills from the opening, illuminating dark spaces"
-        " as though a lantern were inside. The flagon predates the Fourth Epoch and"
-        " is believed to have been crafted by a Solar High Priest of the Ancient Sun"
-        " Church who, in a moment of divine madness, attempted to bottle the dawn."
-        " The church officially denies any knowledge of this artifact; unofficially,"
-        " it is the subject of three ongoing internal investigations."
-    ))
-    story.append(sp(2))
-
-    flagon_abilities = [
-        ["Ability", "SPI Cost", "Effect"],
-        ["Dawn's Draught",
-         "2 SPI",
-         "Drink from the flagon as a Ready maneuver. The user is immediately healed"
-         " of 1d6+2 HP of injury and cured of any mundane poison or disease in their"
-         " system. Undead creatures within 5 meters take 1d6 burning damage from the"
-         " released radiance. The flagon refills itself at the next sunrise."
-         " Maximum one draught per day, even if the flagon is refilled."],
-        ["Purifying Flood",
-         "3 SPI",
-         "Upset the flagon as an Attack maneuver, spilling its contents across a"
-         " 3-meter radius. The liquid burns with golden light for 3 turns, dealing"
-         " 2d6 burning damage each turn to undead, demons, and corrupted beings"
-         " within the area. Living creatures are unaffected but are blinded for 1 turn"
-         " if they look directly at the spilled light. The liquid evaporates at the"
-         " end of the duration. Usable once per hour — the flagon must slowly"
-         " replenish from ambient sunlight."],
-        ["Bottled Dawn",
-         "5 SPI",
-         "Remove the stopper and speak the True Name of the Sun (a three-syllable"
-         " word that inflicts 1 HP of spiritual damage to any non-Sun-pathway being"
-         " who hears it spoken aloud) as a Concentrate maneuver. A beam of brilliant"
-         " golden light fires from the flagon's opening in a straight line 20 meters"
-         " long and 1 meter wide. Everything in its path takes 4d6 burning damage"
-         " (halved if the target succeeds on HT-3). Against undead, demons, or"
-         " Beyonders of the Chained, Abyss, or Death pathways, damage is doubled"
-         " and no half-damage is allowed. The flagon cracks noticeably after each"
-         " use — after 3 uses of Bottled Dawn, it shatters permanently. The shards"
-         " remain dangerous and retain Grade 2 classification."],
-    ]
-    flagon_abilities[0] = [Paragraph(c, S['TableHeader']) for c in flagon_abilities[0]]
-    for i in range(1, len(flagon_abilities)):
-        flagon_abilities[i] = [
-            Paragraph(flagon_abilities[i][0], S['TableCell']),
-            Paragraph(flagon_abilities[i][1], S['TableCellCenter']),
-            Paragraph(flagon_abilities[i][2], S['TableCell']),
-        ]
-    story.append(Table(flagon_abilities, colWidths=[1.2*inch, 0.7*inch, 4.4*inch],
-                       style=table_style()))
-    story.append(sp(2))
-
-    story.append(Paragraph("<b>Drawbacks:</b>", S['BodyBold']))
-    story.append(bullet(
-        "<b>Light's Burden.</b> While in possession of the flagon (carried on the"
-        " person or within 3 meters for more than 1 hour), the user's eyes glow with"
-        " a faint golden light. This imposes -4 to Stealth in darkness and makes the"
-        " user memorable (+2 to any roll to identify or recall them). The glow"
-        " fades 1d6 hours after the flagon is removed."
-    ))
-    story.append(bullet(
-        "<b>Sun's Judgment.</b> The flagon judges its bearer. Any time the user"
-        " knowingly tells a lie, breaks a sworn oath, or commits a cowardly act,"
-        " the flagon grows hot (1 HP burn to the hand) and its light dims for"
-        " 1 hour — during which time all abilities cost +1 SPI (minimum 1)."
-        " After 10 such marks, the flagon refuses to grant any abilities until the"
-        " user undertakes a genuine act of heroism (GM's discretion)."
-    ))
-    story.append(bullet(
-        "<b>Burning Thirst.</b> The flagon induces a constant, mild thirst in its"
-        " bearer. The user must drink at least twice as much water as normal each"
-        " day or suffer from mild dehydration (-1 to HT rolls). Alcohol does not"
-        " satisfy this thirst — it makes it worse (doubles the penalty)."
-    ))
-    story.append(sp(2))
-    story.append(Paragraph(
-        "<b>Sealing Instructions:</b> The flagon must be wrapped in a shroud of"
-        " black silk that has never seen sunlight and stored in a stone vault at"
-        " least 10 meters underground. Once per week, the shroud must be replaced"
-        " with a fresh one. The old shroud must be burned at noon under an open sky."
-        " If the flagon's warmth becomes uncomfortably hot through the shroud, it"
-        " is attempting to break containment — a bishop-level exorcism must be"
-        " performed within 24 hours.",
-        S['Body']
-    ))
-    story.append(sp(3))
-
-
-
     story += chapter("Chapter 6.5: Divination Arts")
 
     story.append(flavor(
@@ -3894,7 +3717,7 @@ def build():
         ["Success by 0–2", "Vague", "Symbolic or partial answer — requires interpretation (IQ or Occultism roll to fully understand)"],
         ["Failure by 1–4", "Murky", "No useful information. SPI spent. May retry after 1 hour with fresh approach."],
         ["Failure by 5+", "Distorted", "Misleading or inverted answer. The caster believes it is genuine."],
-        ["Critical Failure", "Backlash", "Roll on the Critical Failure Table (Chapter 7, Section VI) — treat as a ritual critical failure."],
+        ["Critical Failure", "Backlash", "Roll on the Critical Failure Table (Chapter 7, Section V) — treat as a ritual critical failure."],
     ]
     interp_data[0] = [Paragraph(c, S['TableHeader']) for c in interp_data[0]]
     for i in range(1, len(interp_data)):
@@ -4163,58 +3986,26 @@ def build():
 
     story += chapter("Chapter 7: Ritualistic Magic")
 
-    story.append(flavor(
-        "Ritualistic magic is a very dangerous thing... — Emperor Roselle to Klein Moretti"
+    story.append(sp(4))
+
+    story.append(body(
+        "Ritualistic Magic (IQ/Very Hard) is the skill of designing and executing rituals. "
+        "It has no default. Every ritual rests on three pillars: <b>Sacrifice</b> (sparks the "
+        "entity's interest), <b>Incantation</b> (identifies the target), and <b>Symbols & "
+        "Formatting</b> (physical arrangement conveys intent). You may also <b>Pray to Yourself</b> "
+        "— draw entirely on your own spirituality without petitioning any god. The result is "
+        "limited by personal power: a weak result for the weak, a strong result for the strong."
+    ))
+    story.append(body(
+        "<b>Low-Sequence Beyonders</b> (Seq 9–8) have limited SPI and weak personal authority — "
+        "they must invoke higher beings or make elaborate preparations to achieve meaningful effects."
     ))
     story.append(sp(4))
 
-    story += section("I. Core Philosophy")
+    story += section("I. The Core Skill")
     story.append(body(
-        "Ritualistic Magic is not spellcasting. It is a structured negotiation with forces "
-        "older and stranger than you. Every ritual is built on <b>three pillars</b>:"
-    ))
-    story.append(sp(2))
-    story.append(bbullet(
-        "<b>Sacrifice</b> — sparks the interest of the entity you invoke. "
-        "The quality and relevance of your offering determines whether they notice."
-    ))
-    story.append(bbullet(
-        "<b>Incantation</b> — specifically describes the existence you call upon. "
-        "Correct names, honorifics, and domains matter. Errors invite the wrong thing."
-    ))
-    story.append(bbullet(
-        "<b>Symbols & Formatting</b> — the physical arrangement, drawn sigils, candle "
-        "placement, and altar layout convey your intent to the spiritual world."
-    ))
-    story.append(sp(2))
-    story.append(body(
-        "<b>Low-Sequence Beyonders are not strong enough.</b> Almost all the ritualistic magic "
-        "they can perform is the seeking of external powers and help. A Sequence 9 or 8 Beyonder "
-        "has limited Spirituality and weak personal authority over symbolism — they must invoke "
-        "higher beings to achieve meaningful effects. This is not a weakness of the system; it is "
-        "the fundamental nature of ritual work."
-    ))
-    story.append(body(
-        "<b>Praying to Oneself</b> — Ritualistic magic can also be directed inward, drawing power "
-        "from your own spirituality without petitioning any god. To do so, craft a "
-        "<b>three-line description</b> of your being that precisely identifies your spiritual "
-        "location within the Wall of Spirituality. For example: <i>\"Cordu Village's Trickster "
-        "King, Aurore Lee's younger brother, An entity known as Lumian Lee...\"</i> "
-        "The benefit is total independence from divine constraints — the weakness is that the "
-        "result is limited by your personal power. A weak Beyonder gets a weak result."
-    ))
-    story.append(sp(2))
-    story.append(bbullet("<b>Rituals are processes, not buttons.</b> They take time, materials, and preparation."))
-    story.append(bbullet("<b>Power must come from somewhere.</b> Your own SPI is finite. This is why you invoke gods, make sacrifices, or gather multiple participants."))
-    story.append(bbullet("<b>Sequence determines authority.</b> The lower your Sequence, the weaker your symbolism and personal authority — you must compensate with elaborate ritual, better materials, and invoking higher beings."))
-    story.append(bbullet("<b>Every ritual is a risk.</b> The wrong incantation, the wrong timing, or insufficient sacrifice can attract entities you did not intend to contact."))
-    story.append(sp(4))
-
-    story += section("II. The Primary Skill")
-    story.append(body(
-        "<b>Ritualistic Magic (IQ/Very Hard)</b> — your core skill. It has no default and cannot "
-        "be substituted. It covers your ability to design, prepare, and execute rituals correctly. "
-        "Supporting skills provide complementary bonuses but never replace this skill."
+        "<b>Ritualistic Magic (IQ/Very Hard)</b> — no default, cannot be substituted. "
+        "Supporting skills provide complementary bonuses (cumulative, max <b>+3 total</b>):"
     ))
     story.append(sp(2))
     supp_data = [
@@ -4234,99 +4025,43 @@ def build():
         ParagraphStyle('note', fontName='Times-Italic', fontSize=9, textColor=PURPLE_ACC)))
     story.append(sp(4))
 
-    story += section("III. Ritual Resolution — Two Modes")
-    story.append(body(
-        "Ritualistic Magic can be resolved at two levels of detail depending on the stakes. "
-        "<b>Quick Ritual</b> is for routine work (daily divination, simple prayers, minor warding). "
-        "<b>Full Ritual</b> is for consequential magic (curses, binding, summoning, cleansing). "
-        "Both use the same underlying canon procedure — they just expose different levels of granularity."
-    ))
+    story += section("II. Effect Categories")
+    story.append(body("Every ritual falls into one of three weights that determine base difficulty and SPI cost:"))
     story.append(sp(2))
-    story.append(bbullet("<b>Quick Ritual:</b> Resolve in 4 steps. ~1 minute at the table. 15–30 minutes in-game."))
-    story.append(bbullet("<b>Full Ritual:</b> Three phases — Prepare, Conduct, Close. ~5 minutes at the table. 30 min–1 hr in-game."))
-    story.append(bbullet("<b>Ceremony:</b> For advancement rituals and large-scale workings. Story-level resolution — no mechanical shortcut."))
+    weight_data = [
+        ["Weight", "Base Mod", "SPI Cost", "Example Categories"],
+        ["Light", "+0", "2 SPI", "Divination (1–2 SPI via Divination Arts), spirit creature summoning, minor communication, simple warding, basic prayer"],
+        ["Moderate", "-2", "4–6 SPI", "Enhancement, curse, cleansing, marking, fabrication, concealment, oath-sealing, protection, warding"],
+        ["Heavy", "-4", "8+ SPI", "Binding, unraveling, affliction, transference, soul-anchoring, permanent enchantment"],
+    ]
+    weight_data[0] = [Paragraph(c, S['TableHeader']) for c in weight_data[0]]
+    for i in range(1, len(weight_data)):
+        weight_data[i] = [Paragraph(c, S['TableCellCenter']) for c in weight_data[i]]
+    story.append(Table(weight_data, colWidths=[1.0*inch, 0.8*inch, 0.8*inch, 4.7*inch], style=table_style()))
     story.append(sp(4))
 
-    story += subsection("A. Quick Ritual")
-    story.append(body(
-        "Use for routine, low-stakes rituals where the drama is in the outcome, not the setup."
-    ))
+    story += section("III. Resolution")
+    story.append(body("Two resolution modes depending on stakes:"))
     story.append(sp(2))
+    story.append(bbullet("<b>Quick Ritual (~1 min at table):</b> Resolve in one roll. For routine work. See tables below."))
+    story.append(bbullet("<b>Full Ritual (~5 min at table):</b> Three phases — Prepare, Conduct, Close. For consequential magic."))
+    story.append(bbullet("<b>Ceremony (story-level):</b> For advancement rituals and large-scale workings. 3+ hours. No mechanical shortcut."))
+    story.append(sp(3))
 
-    story += subsection("Step 1 — State Intent")
-    story.append(body(
-        "The player describes what they want in one or two sentences. The GM confirms the effect "
-        "category (Light, Moderate, or Heavy — see Section V) and its base difficulty."
-    ))
+    story += subsection("A. Quick Resolution")
+    story.append(body("State intent, choose power source, sum modifiers, then roll Ritualistic Magic against the base difficulty:"))
     story.append(sp(2))
-
-    story += subsection("Step 2 — Determine Power Source")
-    story.append(body("The player chooses where the energy comes from. Pick one:"))
-    story.append(bbullet(
-        "<b>Personal SPI (Praying to Oneself):</b> Pay the SPI cost from your own pool. "
-        "Safest method — no entity becomes aware of you. The result is limited by your personal power."
-    ))
-    story.append(bbullet(
-        "<b>Invocation (Deity or Hidden Existence):</b> Borrow power from an external entity. "
-        "The GM rolls on the Entity Response Table (Section IV) to determine the entity's reaction. "
-        "More powerful than personal SPI but carries risk."
-    ))
-    story.append(bbullet(
-        "<b>Sacrifice or External Source:</b> Use HP, multiple participants, or a catalyst. "
-        "See Section IV: Power Sources for details."
-    ))
-    story.append(sp(2))
-    story.append(body(
-        "<i>Note: You may also burn additional SPI after the roll to improve it (see \"Burning FP & SPI to "
-        "Modify Rolls\" in Chapter 2). This is separate from the ritual's fuel cost.</i>"
-    ))
-    story.append(sp(2))
-
-    story += subsection("Step 3 — Apply Modifiers")
-    story.append(body("Sum the following two modifiers:"))
-    story.append(sp(2))
-
-    story.append(body("<b>1. Preparation Quality</b>"))
-    prep_quick_data = [
-        ["Condition", "Modifier"],
-        ["Excellent — sanctified space, domain-matched materials, proper altar, Cogitation + Wall", "+2"],
-        ["Adequate — clean space, basic materials, Cogitation + Wall", "+0"],
-        ["Poor / None — no preparation, wrong materials, rushed, no Wall", "-2 to -4"],
-    ]
-    prep_quick_data[0] = [Paragraph(c, S['TableHeader']) for c in prep_quick_data[0]]
-    for i in range(1, len(prep_quick_data)):
-        prep_quick_data[i] = [Paragraph(c, S['TableCellCenter']) for c in prep_quick_data[i]]
-    story.append(Table(prep_quick_data, colWidths=[3.5*inch, 1.5*inch], style=table_style()))
-    story.append(sp(2))
-
-    story.append(body("<b>2. Target Link</b>"))
-    link_quick_data = [
-        ["Link to Target", "Modifier"],
-        ["Perfect — true name + intimate possession (blood, hair, photo)", "+4"],
-        ["Strong — true name only, or intimate possession only", "+2 to +3"],
-        ["Weak — public alias, secondhand item, vague description", "+0 to -1"],
-        ["None — no name, no item, no description", "-4"],
-    ]
-    link_quick_data[0] = [Paragraph(c, S['TableHeader']) for c in link_quick_data[0]]
-    for i in range(1, len(link_quick_data)):
-        link_quick_data[i] = [Paragraph(c, S['TableCellCenter']) for c in link_quick_data[i]]
-    story.append(Table(link_quick_data, colWidths=[3.5*inch, 1.5*inch], style=table_style()))
-    story.append(sp(2))
-
-    story += subsection("Step 4 — Roll & Resolve")
-    story.append(body(
-        "Roll Ritualistic Magic, add the total modifier, and compare to the effect's base difficulty:"
-    ))
     eff_quick_data = [
-        ["Effect Weight", "Base Difficulty", "Typical SPI Cost"],
-        ["Light (divination, minor communication, simple warding)", "+0", "2 SPI"],
-        ["Moderate (curse, cleansing, binding, fabrication, enhancement)", "-2", "4–6 SPI"],
-        ["Heavy (summoning, soul-anchoring, transference, unraveling)", "-4", "8+ SPI"],
+        ["Effect Weight", "Base Difficulty", "Base Time", "SPI Cost"],
+        ["Light",  "+0", "15 min", "2 SPI"],
+        ["Moderate", "-2", "30 min", "4–6 SPI"],
+        ["Heavy",  "-4", "1 hr",  "8+ SPI"],
+        ["Major",  "-6", "3 hr",  "12+ SPI"],
     ]
     eff_quick_data[0] = [Paragraph(c, S['TableHeader']) for c in eff_quick_data[0]]
     for i in range(1, len(eff_quick_data)):
-        eff_quick_data[i] = [Paragraph(c, S['TableCell']) for c in eff_quick_data[i]]
-    story.append(Table(eff_quick_data, colWidths=[3.2*inch, 1.0*inch, 1.5*inch], style=table_style()))
+        eff_quick_data[i] = [Paragraph(c, S['TableCellCenter']) for c in eff_quick_data[i]]
+    story.append(Table(eff_quick_data, colWidths=[1.3*inch, 0.9*inch, 0.9*inch, 0.9*inch], style=table_style()))
     story.append(sp(2))
 
     resolve_data = [
@@ -4334,386 +4069,101 @@ def build():
         ["Success by 3+", "Effect surpasses intent. Entity pleased (if invoked)."],
         ["Success by 0–2", "Effect works as intended."],
         ["Failure by 1–4", "No effect. SPI and materials spent. Faint spiritual disturbance."],
-        ["Failure by 5+", "Partial wrong activation. GM chooses a distorted outcome."],
-        ["Critical Failure (17–18)", "Roll on the Critical Failure Table (Section VI)."],
+        ["Failure by 5+", "Partial wrong activation. GM chooses distorted outcome."],
+        ["Critical Failure (17–18)", "Roll on Critical Failure Table (Section V)."],
     ]
     resolve_data[0] = [Paragraph(c, S['TableHeader']) for c in resolve_data[0]]
     for i in range(1, len(resolve_data)):
         resolve_data[i] = [Paragraph(c, S['TableCell']) for c in resolve_data[i]]
-    story.append(Table(resolve_data, colWidths=[1.8*inch, 4.5*inch], style=table_style()))
+    story.append(Table(resolve_data, colWidths=[2.0*inch, 4.3*inch], style=table_style()))
     story.append(sp(2))
     story.append(body(
-        "<b>Burning SPI to improve the roll:</b> After seeing your result, you may spend additional SPI "
-        "(1 SPI = +1) using the universal burning mechanic (Chapter 2). There is no cap. This is separate "
-        "from the ritual's fuel cost — you can do both."
+        "<b>Preparation Quality:</b> Excellent +2, Adequate +0, Poor/None -2 to -4. "
+        "<b>Target Link:</b> Perfect (name + possession) +4, Strong (name or possession) +2 to +3, "
+        "Weak (alias, secondhand) +0 to -1, None -4."
     ))
-    story.append(sp(4))
-
-    story += subsection("B. Full Ritual")
     story.append(body(
-        "For important or dangerous rituals. Uses the complete canon procedure compressed into "
-        "<b>three phases</b>. The full 12-step reference is preserved at the end of this section "
-        "for GMs who want the novel's texture."
+        "<b>Burning SPI:</b> After seeing your result, spend additional SPI (1 SPI = +1, no cap) "
+        "to improve the roll. This is separate from the ritual's fuel cost."
     ))
     story.append(sp(3))
 
-    story += subsection("Phase I — Prepare")
-    story.append(body("The player declares the following. Each choice feeds into a single Preparation Modifier."))
-    story.append(sp(2))
-    story.append(bbullet("<b>Target entity:</b> Orthodox god / Hidden existence / Evil god / Yourself"))
-    story.append(bbullet("<b>Timing:</b> Does it match the entity's domain? (Night -> Evernight, Noon -> Sun, etc.)"))
-    story.append(bbullet("<b>Materials:</b> Domain-appropriate candles (2 ingredients each), essential oils, pure metal dagger, paper, salt"))
-    story.append(bbullet("<b>Space:</b> Clean, spiritually cleansed, Wall of Spirituality erected"))
-    story.append(bbullet("<b>Sacrifice (if any):</b> HP / none (see Section IV — HP Sacrifice)"))
-    story.append(bbullet("<b>Link to target:</b> None / Weak / Strong / Perfect"))
-    story.append(sp(2))
-
-    story.append(body("The GM determines the <b>Preparation Modifier</b> from the player's declarations:"))
-    prep_full_data = [
-        ["Preparation Quality", "Modifier", "What This Looks Like"],
-        ["Excellent", "+3", "Sanctified space, rare domain-matched materials, celestial timing, perfect link, high-grade sacrifice"],
-        ["Good", "+1 to +2", "Domain-matched candles, proper altar, strong link, clean space, adequate materials"],
-        ["Adequate", "+0", "Correct materials, clean space, basic link, Cogitation + Wall erected"],
-        ["Poor", "-1 to -2", "Improvised space, generic items, no cleansing, weak link, rushed"],
-        ["None", "-4 or worse", "Open street, wrong materials, no link, no Cogitation, no Wall"],
-    ]
-    prep_full_data[0] = [Paragraph(c, S['TableHeader']) for c in prep_full_data[0]]
-    for i in range(1, len(prep_full_data)):
-        prep_full_data[i] = [Paragraph(prep_full_data[i][j],
-            S['TableCellCenter'] if j == 1 else S['TableCell']) for j in range(3)]
-    story.append(Table(prep_full_data, colWidths=[1.3*inch, 0.9*inch, 4.1*inch], style=table_style()))
-    story.append(sp(3))
-
-    story += subsection("Phase II — Conduct")
+    story += subsection("B. Full Resolution — Three Phases")
     story.append(body(
-        "The player narrates the incantation (4-part Hermes structure — see reference below). "
-        "The GM may award a <b>Flourish Bonus</b> (+1) for good in-character delivery."
+        "<b>Phase I — Prepare:</b> Declare target entity, timing, materials, space, sacrifice, and target link. "
+        "GM determines Preparation Modifier: Excellent +3, Good +1 to +2, Adequate +0, Poor -1 to -2, None -4 or worse."
     ))
-    story.append(sp(2))
-    story.append(body("<b>Effective skill</b> = Ritualistic Magic + Preparation Mod + Flourish Bonus"))
-    story.append(body("If invoking an entity, the GM rolls on the <b>Entity Response Table</b> (Section IV) and adds its result to the total."))
-    story.append(sp(2))
     story.append(body(
-        "<b>Burning SPI to improve the roll:</b> As with Quick Rituals, you may spend additional SPI "
-        "(1 SPI = +1, no cap) after seeing your result, separate from the ritual's fuel cost."
+        "<b>Phase II — Conduct:</b> Narrate incantation (4-part Hermes structure: Invocation, Grace, Request, Empowerment). "
+        "GM may award +1 Flourish Bonus for good roleplay. Effective skill = Ritualistic Magic + Preparation Mod + Flourish Bonus. "
+        "If invoking an entity, add Invocation bonus (GM discretion, +1 to +5)."
     ))
-    story.append(sp(3))
-
-    story += subsection("Phase III — Close")
-    story.append(body("The player describes the closing procedure. The GM confirms it and resolves the outcome."))
-    story.append(sp(2))
-    story.append(bullet("Drip a drop of essential oil on each candle."))
-    story.append(bullet("Burn the piece of paper used to draw the target symbol."))
-    story.append(bullet("Thank the entity (if one was invoked)."))
-    story.append(bullet("Extinguish candles <b>right to left</b>, beginning with 'me' and then 'god'."))
-    story.append(bullet("Dispel the Wall of Spirituality."))
-    story.append(sp(2))
-    story.append(body("Then resolve using the same outcome table as Quick Ritual (Step 4)."))
-    story.append(sp(4))
-
-    story += subsection("C. The Complete Canon Procedure (Reference)")
     story.append(body(
-        "The novel's full procedure is preserved here as a reference. Every step is canon. "
-        "Use this for Ceremony-mode rituals or when you want the full texture of the ritual."
+        "<b>Phase III — Close:</b> Drip oil on candles, burn symbol paper, thank entity (if invoked), "
+        "extinguish candles right to left (me then god), dispel Wall of Spirituality. "
+        "Resolve using the Quick Resolution outcome table."
     ))
     story.append(sp(2))
 
-    story += subsection("1. Choose Target & Determine Timing")
-    story.append(body(
-        "Decide whether you are praying to an orthodox god, a hidden existence, or yourself. "
-        "For orthodox gods, choose the date and time over which They rule — "
-        "the Evernight Goddess at night, the Sun at dawn, the God of Knowledge and Wisdom on "
-        "the 7th day of the week, etc. Wrong timing for the entity gives -1 to -2."
-    ))
-    story.append(body(
-        "If invoking a deity or entity, you need Their <b>honorific name</b> or at minimum the "
-        "domains They rule over. This determines the incantation structure."
-    ))
-
-    story += subsection("2. Prepare Ingredients")
-    story.append(body(
-        "Assemble materials from the entity's domain. Burning extracts, essential oils, and "
-        "herbal powder serves <b>two purposes</b>: (1) it helps you attune your spirituality "
-        "and enter Cogitation; (2) it pleases the entity being invoked, increasing the chance "
-        "of a response. Each deity has characteristic ingredients — night vanilla and slumber "
-        "flowers for the Evernight Goddess; sunflower and amber for the Sun; lavender and mint "
-        "for the God of Knowledge and Wisdom."
-    ))
-    story.append(body(
-        "Most ingredients are used to make <b>candles</b>, with 2 related ingredients per candle. "
-        "A proper ritual needs 1–3 specially prepared candles."
-    ))
-
-    story += subsection("3. Sanctify the Space")
-    story.append(body(
-        "Use salt and/or pure water to cleanse items. Pronounce an incantation while cleansing — "
-        "the penultimate sentence should name the deity (or use your own name as a wild Beyonder). "
-        "The most commonly sanctified item is a pure metal dagger."
-    ))
-
-    story += subsection("4. Enter Cogitation")
-    story.append(body(
-        "Focus your mind, draw out your strength. Let your brain go somewhat blank, think of an "
-        "object that does not exist in this world, and place all focus on it. Exchange the imagined "
-        "object — use something you imagine completely out of thin air. This creates a "
-        "<b>Mystic Experience</b>. Essential oils and herbs help the performer enter this state."
-    ))
-
-    story += subsection("5. Build the Wall of Spirituality")
-    story.append(body(
-        "Construct a sealed spiritual environment around the altar using supplementary items "
-        "blessed by a Sanctification Ritual (Holy Night Powder, silver dagger, or salt). "
-        "The wall protects the ritual space from outside interference and contains spiritual energy."
-    ))
-
-    story += subsection("6. Set Up the Altar")
-    story.append(body(
-        "The altar requires: a <b>pure metal dagger</b> (silver for Evernight/The Fool, brass for "
-        "God of Knowledge and Wisdom, iron for darker entities), <b>candles</b> made from domain-"
-        "appropriate ingredients, extracts, essential oils, herbal powders, and/or animal materials. "
-        "The space must be <b>spiritually clean</b> — no miscellaneous items, no disturbances."
-    ))
-
-    story += subsection("7. Light the Candles")
-    story.append(body(
-        "Candles cannot be lit by ordinary means during a ritual. The correct method: extend your "
-        "spirituality, rub it against the wick, and ignite it that way. Light candles "
-        "<b>from left to right, beginning with 'god' followed by 'me'</b>. A standard '3-candle' "
-        "arrangement has two candles on top (left = entity, right = entity's domain) and one below "
-        "('me' — the performer)."
-    ))
-
-    story += subsection("8. Apply Oils & Herbs")
-    story.append(body(
-        "Drop essential oil and/or herbal powders onto candle flames, or light herbs and throw them "
-        "into a cauldron. This pleases the entity and helps maintain Cogitation."
-    ))
-
-    story += subsection("9. Recite the Incantation")
-    story.append(body(
-        "The standard incantation has <b>four parts</b>, spoken in <b>Hermes</b>:"
-    ))
-    story.append(sp(2))
-    story.append(bbullet(
-        "<b>Part 1 — Invocation:</b> A prayer for someone's power. Replace 'someone' with the "
-        "entity's honorific name, symbol, or domain. E.g.: \"The existence that rules the "
-        "concealed path and controls fate...\""
-    ))
-    story.append(bbullet(
-        "<b>Part 2 — Grace:</b> \"I pray for the God's loving grace.\""
-    ))
-    story.append(bbullet(
-        "<b>Part 3 — Request:</b> What you pray for. Must be brief — finish in one sentence."
-    ))
-    story.append(bbullet(
-        "<b>Part 4 — Empowerment:</b> Invoke a specific herb or ingredient to empower the request. "
-        "E.g.: \"Sun Flower, a herb that belongs to the Sun. Please bestow your powers to my incantation.\""
-    ))
-    story.append(sp(2))
-    story.append(body(
-        "As long as the four-part structure is followed and the key meaning is expressed in Hermes, "
-        "the rest can be left to the caster's creativity. For <b>Praying to Oneself</b>, "
-        "replace the four-part structure with the three-line self-description (see Section IV — Personal Spirituality)."
-    ))
-
-    story += subsection("10. Deliver Sacrifice")
-    story.append(body(
-        "If the ritual requires a sacrifice, present it now. There is no real distinction between "
-        "using a knife to sacrifice someone and using a chemical explosion — what matters is that "
-        "the entity receives what was promised."
-    ))
-
-    story += subsection("11. Draw & Burn the Symbol")
-    story.append(body(
-        "Draw the symbol of what is desired on a piece of paper. After reciting the incantation, "
-        "burn it to seal the intent."
-    ))
-
-    story += subsection("12. Complete & Close")
-    story.append(body("After the paper has burned:"))
-    story.append(bullet("Drip a drop of essential oil on each candle."))
-    story.append(bullet("Thank the entity."))
-    story.append(bullet("Extinguish candles <b>right to left</b>, beginning with 'me' and then 'god'."))
-    story.append(bullet("Dispel the Wall of Spirituality."))
-    story.append(sp(2))
-
-    story += subsection("Suspending a Ritual")
-    story.append(body(
-        "High-level rituals can take hours to half a day. A suspension-style technique allows the "
-        "caster to terminate at a defined point, finish other matters, then return and continue. "
-        "The caster must understand the mysticism theory and grasp the corresponding technique — "
-        "improvising a suspension without the correct knowledge risks failure or terrifying backlash. "
-        "At the GM's discretion, suspending a ritual costs -2 to the effective skill."
-    ))
-    story.append(sp(4))
-
-    story += subsection("Time & Complexity Reference")
     time_data = [
-        ["Ritual Complexity", "Base Time", "Rushed", "Extended"],
-        ["Light (divination, minor enhancement)", "15 min", "-3 to roll", "+1 to roll"],
-        ["Moderate (curses, wards, communication)", "30 min", "-3 to roll", "+1 to roll"],
-        ["Heavy (summoning, binding, fabrication)", "1 hour",  "-4 to roll", "+2 to roll"],
-        ["Major (soul-touching, large-scale effects)", "3+ hours", "-5 to roll", "+2 to roll"],
+        ["Complexity", "Base Time", "Rushed", "Extended"],
+        ["Light",   "15 min", "-3 to roll", "+1 to roll"],
+        ["Moderate","30 min", "-3 to roll", "+1 to roll"],
+        ["Heavy",   "1 hr",   "-4 to roll", "+2 to roll"],
+        ["Major",   "3 hr",   "-5 to roll", "+2 to roll"],
     ]
     time_data[0] = [Paragraph(c, S['TableHeader']) for c in time_data[0]]
     for i in range(1, len(time_data)):
         time_data[i] = [Paragraph(c, S['TableCellCenter']) for c in time_data[i]]
     story.append(Table(time_data, colWidths=[2.1*inch, 0.9*inch, 1.3*inch, 2.0*inch], style=table_style()))
+    story.append(sp(2))
+    story.append(body(
+        "<b>Suspending a Ritual:</b> A suspension technique allows the caster to terminate, handle other matters, "
+        "then return and continue. The caster must understand the underlying mysticism. At GM discretion, suspending "
+        "costs -2 to effective skill."
+    ))
     story.append(sp(4))
 
     story += section("IV. Power Sources")
-    story.append(body(
-        "Every ritual requires a source of energy. The reason <b>which power source you choose "
-        "matters</b> is simple: your personal Spirituality is limited. The bigger the effect, "
-        "the more SPI you need — and you may not have enough.",
-    ))
-    story.append(body(
-        "Before rolling, you must declare where the energy comes from. This choice cannot be "
-        "changed once the ritual has begun."
-    ))
+    story.append(body("Every ritual requires energy. Declare your source before rolling — it cannot be changed once begun:"))
     story.append(sp(2))
-    story += subsection("A. Personal Spirituality (Praying to Oneself)")
-    story.append(body(
-        "You draw entirely on your own SPI. This is the safest method — no entity becomes aware "
-        "of you — but it is limited by your personal reserves. The caster pays SPI equal to the "
-        "ritual's complexity cost. SPI cannot be reduced below 0."
+    story.append(bbullet(
+        "<b>Personal Spirituality (Praying to Oneself):</b> Pay SPI from your own pool. No entity becomes aware of you. "
+        "SPI cost varies by effect weight (2–15+ SPI). The result is limited by personal power."
     ))
-    spi_cost_data = [
-        ["Complexity", "SPI Cost"],
-        ["Simple effect, short duration, single target", "2-3 SPI"],
-        ["Moderate effect, hours to days, single target", "4-6 SPI"],
-        ["Powerful effect, long duration or wider scope", "7-10 SPI"],
-        ["Major effect (territory-scale, permanent, or very powerful)", "11-15+ SPI"],
-    ]
-    spi_cost_data[0] = [Paragraph(c, S['TableHeader']) for c in spi_cost_data[0]]
-    for i in range(1, len(spi_cost_data)):
-        spi_cost_data[i] = [Paragraph(c, S['TableCell']) for c in spi_cost_data[i]]
-    story.append(Table(spi_cost_data, colWidths=[3.5*inch, 2.8*inch], style=table_style()))
-    story.append(body(
-        "<b>Burning SPI to improve the roll:</b> This SPI cost is the <i>fuel</i> for the ritual. "
-        "Separately, you may spend additional SPI after seeing your roll to boost it (+1 per SPI, no cap) "
-        "using the universal burning mechanic (see Chapter 2, \"Burning FP & SPI to Modify Rolls\"). "
-        "The two uses of SPI are cumulative."
+    story.append(bbullet(
+        "<b>HP Sacrifice:</b> 2 HP = 1 SPI toward ritual cost. HP sacrifice does not grant a roll bonus — it only "
+        "provides spiritual fuel. Visible — bleeding, pallor, shaking. Others will notice."
+    ))
+    story.append(bbullet(
+        "<b>Multiple Participants:</b> Assistants each contribute their SPI toward the total cost. "
+        "Each assistant beyond the first gives +1 to the ritual roll (max +3)."
+    ))
+    story.append(bbullet(
+        "<b>External Sacrifice:</b> Offerings of items, materials, or living beings. "
+        "Sacrifice quality: Ordinary +0, Meaningful +2, Precious +4. Living sacrifice +2 per sentient being. "
+        "The offering is always consumed."
+    ))
+    story.append(bbullet(
+        "<b>Catalysts:</b> Rare materials burned or consumed to enhance the ritual. Provide +0 to +2 to the roll "
+        "(GM discretion based on quality and domain relevance)."
+    ))
+    story.append(bbullet(
+        "<b>Invocation (Deity or Hidden Existence):</b> Borrow power from an external entity. "
+        "Adds +1 to +5 to the ritual roll (GM discretion based on entity's disposition and domain alignment). "
+        "Orthodox deities grant +2 when the request aligns with their domain and the caster is in good standing."
     ))
     story.append(sp(3))
 
-    story += subsection("B. HP Sacrifice")
-    story.append(body(
-        "The caster burns HP in addition to or instead of SPI. Every 2 HP spent counts as 1 SPI "
-        "toward the ritual cost. This is visible — bleeding, pallor, shaking. Others <i>will</i> notice. "
-        "HP sacrifice does not grant a bonus to the roll — it only provides spiritual fuel."
-    ))
-
-    story += subsection("C. Multiple Participants")
-    story.append(body(
-        "A ritual may include multiple trained participants who pool their SPI. The primary caster "
-        "leads the ritual and makes the roll; each assistant contributes their SPI to the total "
-        "cost. Assistants do not need to have Ritualistic Magic skill themselves, but they must be "
-        "Beyonders who can consciously channel their spirituality. Each assistant beyond the first "
-        "also grants +1 to the ritual roll (maximum +3)."
-    ))
-    story.append(body(
-        "<b>Large-scale rituals</b> may require dozens or hundreds of participants. "
-        "Some methods gather sacrifice on a massive scale — for example, sacrificing an entire "
-        "city's worth of souls on a single altar. These are the tools of high-Sequence Beyonders "
-        "like Witches casting terrifyingly potent Curses targeting whole groups."
-    ))
-
-    story += subsection("D. External Sacrifice")
-    story.append(body(
-        "Offerings of items, materials, or living beings can be sacrificed to an entity in exchange "
-        "for power or favor. The offering is consumed or destroyed in the process. The GM determines "
-        "the value of the sacrifice on a three-tier scale: <b>Ordinary</b> (common goods, small animals) "
-        "grants +0 to the roll, <b>Meaningful</b> (valuable items, Beyonder materials) grants +2, "
-        "and <b>Precious</b> (Sealed Artifacts, sentient sacrifices) grants +4. "
-        "Living sacrifice adds +2 per sentient being offered. The sacrificed item is always lost "
-        "regardless of success or failure."
-    ))
-    story.append(sp(2))
-
-    story += subsection("E. Catalysts")
-    story.append(body(
-        "Certain rare materials can be burned or consumed during the ritual to boost its power. "
-        "Catalysts do not replace SPI — they <b>enhance</b> it. A catalyst typically provides "
-        "+0 to +2 to the ritual roll, at the GM's discretion based on quality and relevance."
-    ))
-    story.append(body("Common catalysts include: high-purity essential oils from an entity's domain, alchemically prepared reagents, Beyonder blood, and spiritually resonant gemstones."))
-    story.append(sp(2))
-
-    story += subsection("F. Invocation (Deity or Hidden Existence)")
-    story.append(body(
-        "The caster calls on an orthodox god, a hidden existence, or an evil god. This is the "
-        "<b>most common method for low-Sequence Beyonders</b> — your personal authority and SPI "
-        "are insufficient, so you borrow power from someone higher. The GM rolls secretly on "
-        "the <b>Entity Response Table</b> first, then applies the entity's modifier to the Ritualistic Magic roll."
-    ))
-    story.append(body(
-        "Orthodox deities shift the table result by <b>-2</b> when the request aligns with their "
-        "domain and the caster is in good standing (e.g., a Nighthawk praying to the Evernight "
-        "Goddess). Hidden existences and evil gods use the table unmodified — they are less "
-        "reliable but may answer for lesser requests."
-    ))
-    entity_data = [
-        ["GM Roll (3d6)", "Entity Response"],
-        ["3-5",   "Full response. +5 to ritual roll. Entity may add its own conditions or expectations."],
-        ["6-8",   "Partial response. +3 to ritual roll. Effect is noticeably weaker or slightly altered."],
-        ["9-11",  "Minimal response. +1 to ritual roll. Result barely functions as intended."],
-        ["12-14", "No response. Ritual draws only on caster's residual power (treat as 2 SPI personal)."],
-        ["15-17", "Distracted or displeased. -2 to ritual roll. Something else may notice instead."],
-        ["18",    "Active rejection. Ritual fails automatically. The entity is now aware of the caster."],
-    ]
-    entity_data[0] = [Paragraph(c, S['TableHeader']) for c in entity_data[0]]
-    for i in range(1, len(entity_data)):
-        entity_data[i] = [Paragraph(entity_data[i][j],
-            S['TableCellCenter'] if j == 0 else S['TableCell']) for j in range(2)]
-    story.append(Table(entity_data, colWidths=[1.3*inch, 5.0*inch], style=table_style()))
-    story.append(sp(4))
-
-    story += section("V. Effect Categories")
-    story.append(body(
-        "There is no fixed spell list. Every ritual falls into one of <b>three weights</b> that "
-        "determine its base difficulty and SPI cost. The full list of example categories is provided "
-        "as a reference — the GM uses common sense to classify any novel request."
-    ))
-    story.append(sp(2))
-
-    weight_data = [
-        ["Weight", "Base Mod", "Typical SPI", "Example Categories"],
-        ["Light", "+0", "2 SPI", "Divination (1–2 SPI via Divination Arts, see Ch 6.5), minor communication, simple warding, basic prayer"],
-        ["Moderate", "-2", "4–6 SPI", "Enhancement, curse, cleansing, marking, fabrication, concealment, oath-sealing, protection/warding"],
-        ["Heavy", "-4", "8+ SPI", "Summoning, binding, unraveling, affliction, transference, soul-anchoring"],
-    ]
-    weight_data[0] = [Paragraph(c, S['TableHeader']) for c in weight_data[0]]
-    for i in range(1, len(weight_data)):
-        weight_data[i] = [Paragraph(c, S['TableCellCenter']) for c in weight_data[i]]
-    story.append(Table(weight_data, colWidths=[1.0*inch, 0.8*inch, 0.8*inch, 4.0*inch], style=table_style()))
-    story.append(sp(2))
-    story.append(body(
-        "<b>Full category reference (all 16 types with their weights):</b>"
-    ))
-    story.append(sp(1))
-    cat_data = [
-        ["Weight", "Categories"],
-        ["Light (+0)", "Divination (1–2 SPI via Divination Arts), Communication (minor), Warding (simple)"],
-        ["Moderate (-2)", "Enhancement, Curse, Cleansing, Marking, Fabrication, Concealment, Oath-Sealing, Protection/Warding"],
-        ["Heavy (-4)", "Summoning, Binding, Unraveling, Affliction, Transference, Soul-Anchoring"],
-    ]
-    cat_data[0] = [Paragraph(c, S['TableHeader']) for c in cat_data[0]]
-    for i in range(1, len(cat_data)):
-        cat_data[i] = [Paragraph(c, S['TableCell']) for c in cat_data[i]]
-    story.append(Table(cat_data, colWidths=[1.2*inch, 5.1*inch], style=table_style()))
-    story.append(sp(4))
-
-    story += section("VI. Failure & Consequences")
-    story.append(body("Failure always costs. You spent the time, materials, and SPI or HP. The question is only how badly it went wrong — and what noticed you doing it."))
+    story += section("V. Failure & Consequences")
+    story.append(body("Failure always costs time, materials, and SPI. The question is only how badly it went wrong:"))
     story.append(sp(2))
     fail_data = [
         ["Result", "Consequence"],
-
-        ["Failure by 1-4",              "No effect. Faint spiritual disturbance — the GM may note it."],
-        ["Failure by 5-9",              "Partial, wrong activation. GM chooses a distorted outcome loosely related to intent."],
-        ["Failure by 10+",              "Severe misfire. Roll on Critical Failure Table with -2 to the result roll."],
-        ["Critical Failure (roll 17-18)","Roll on Critical Failure Table immediately."],
+        ["Failure by 1-4",  "No effect. Faint spiritual disturbance — GM may note it."],
+        ["Failure by 5-9",  "Partial wrong activation. GM chooses distorted outcome loosely related to intent."],
+        ["Failure by 10+",  "Severe misfire. Roll on Critical Failure Table with -2 to result roll."],
+        ["Critical Failure", "Roll on Critical Failure Table immediately."],
     ]
     fail_data[0] = [Paragraph(c, S['TableHeader']) for c in fail_data[0]]
     for i in range(1, len(fail_data)):
@@ -4724,15 +4174,15 @@ def build():
     story += subsection("Critical Failure Table (3d6)")
     crit_data = [
         ["Roll", "Outcome"],
-        ["3-4",   "Backlash. Take damage equal to the ritual's SPI cost as injury bypassing DR. Stunned 1d minutes."],
-        ["5-6",   "Wrong Attention. Something external noticed the ritual. The GM decides what, and when it acts."],
-        ["7-8",   "Distortion. The effect activates in a twisted or reversed form. GM defines how."],
-        ["9-10",  "Spiritual Drain. Lose double the SPI cost. Lose 1d SPI from maximum until a full rest. Stunned 1d minutes."],
-        ["11-12", "Wrong Arrival. For summoning/communication: something else responds. Otherwise: an unintended entity becomes aware of you."],
-         ["13-14", "Corruption. Gain 1 CoR. The ritual still fails."],
-         ["15-16", "Shatter. All ward or protection effects on the caster are dispelled. Gain 1 CoR."],
-         ["17",    "Soul Exposure. Caster's spiritual self is partially exposed to the entity invoked. Gain 2 CoR. Nightmares for 1d weeks."],
-        ["18",    "Catastrophe. The GM invents something terrible. It will be remembered. Possible entity arrival."],
+        ["3-4",   "Backlash. Take damage equal to SPI cost as injury bypassing DR. Stunned 1d minutes."],
+        ["5-6",   "Wrong Attention. Something external noticed the ritual. GM decides what and when."],
+        ["7-8",   "Distortion. Effect activates in twisted form. GM defines how."],
+        ["9-10",  "Spiritual Drain. Lose double the SPI cost. Lose 1d SPI from max until full rest. Stunned 1d min."],
+        ["11-12", "Wrong Arrival. For summoning/communication: something else responds. Otherwise: unintended entity notices you."],
+        ["13-14", "Corruption. Gain 1 CoR. Ritual still fails."],
+        ["15-16", "Shatter. All ward/protection effects on caster dispelled. Gain 1 CoR."],
+        ["17",    "Soul Exposure. Spiritual self partially exposed. Gain 2 CoR. Nightmares for 1d weeks."],
+        ["18",    "Catastrophe. GM invents something terrible. Possible entity arrival."],
     ]
     crit_data[0] = [Paragraph(c, S['TableHeader']) for c in crit_data[0]]
     for i in range(1, len(crit_data)):
@@ -4743,404 +4193,139 @@ def build():
 
     story += subsection("Corruption from Ritual Work")
     story.append(body(
-        "CoR from ritual failures and dangerous work stack with the main CoR system. "
-        "Refer to Chapter 6 for full CoR rules. Additional ritual-specific thresholds:"
+        "CoR from ritual failures and dangerous work stacks with the main CoR system. "
+        "Additional thresholds: 3 CoR = -1 to all ritual rolls. 5 CoR = gain -5 pt mental disadvantage. "
+        "8 CoR = gain second -5 pt disadvantage, attract unwanted spiritual attention. "
+        "10 CoR = character is fundamentally altered (may need retirement or major story arc)."
     ))
-    rcp_data = [
-        ["CoR Total", "Additional Ritual Effect"],
-        ["3 CoR",  "All ritual rolls at -1 from spiritual instability."],
-        ["5 CoR",  "Gain a -5 point mental disadvantage (GM choice, thematically linked to the source)."],
-        ["8 CoR",  "Gain a second -5 point mental disadvantage. Passively attracts unwanted spiritual attention."],
-        ["10 CoR", "Character is fundamentally altered. May need to retire, become an NPC, or pursue a major story arc."],
+    story.append(body(
+        "Reduction: Extended rest away from ritual work removes 1 CoR after one full month of abstinence. "
+        "Cleansing rituals can also remove CoR on a successful roll."
+    ))
+    story.append(sp(4))
+
+    story += section("VI. Spirit World Creatures & Contracts")
+    story.append(sp(2))
+
+    story.append(body(
+        "Spirit world creatures exist in the Spirit World, Shadow World, Sea of Eternal Unconscious, "
+        "Mirror World, and other realms. By creating or discovering a three-line incantation and performing "
+        "a summoning ritual, Beyonders may call these beings to ask favours, send messages, or form contracts."
+    ))
+    story.append(sp(3))
+
+    story += subsection("Obtaining a Contracted Creature")
+    story.append(body("Two methods, per Azik Eggers:"))
+    story.append(bbullet(
+        "<b>Method 1 — Summon & Contract:</b> Create an accurate three-line description, hold a summoning ritual, "
+        "and make a contract with the creature that responds."
+    ))
+    story.append(bbullet(
+        "<b>Method 2 — Enter the Spirit World:</b> Enter the Spirit World directly, search for a willing creature, "
+        "obtain its consent, sign a contract, and record its accurate description for future summoning."
+    ))
+    story.append(sp(3))
+
+    story += subsection("Spirit World Creature Contract")
+    story.append(body(
+        "Binding a spirit world creature into a contract requires a focused ritual. The creature knows it "
+        "will be bound to your will and resists accordingly. This ritual is separate from a casual summons "
+        "and cannot be substituted by simple communication."
+    ))
+    story.append(body(
+        "<b>Difficulty:</b> -8 base, plus -3 per creature you have already under contract. "
+        "<b>SPI Cost:</b> 3 SPI. <b>Time:</b> 30 minutes. "
+        "<b>Setup:</b> Simple altar with one candle, plus the goatskin parchment and quill "
+        "for the contract prepared beforehand."
+    ))
+    story.append(sp(2))
+    story.append(body("<b>Degree of Success determines the creature's demands:</b>"))
+    story.append(sp(1))
+    contract_demands = [
+        ["Margin", "Outcome"],
+        ["Success by 10+", "Accepts willingly. No demands or a trivially symbolic one (a single drop of blood, a whispered name)."],
+        ["Success by 7–9", "One minor demand (a small amount of SPI, a simple answer, a trivial errand)."],
+        ["Success by 5–6", "One moderate demand (a favour owed, a small sacrifice, a piece of hidden knowledge)."],
+        ["Success by 3–4", "One severe demand or two moderate demands (a dangerous task, a significant sacrifice)."],
+        ["Success by 1–2", "Two severe demands or one extreme demand (a year of service, a precious heirloom)."],
+        ["Success by 0 (exact)", "Creature drives an extremely hard bargain. The contractor owes a major debt."],
+        ["Failure",  "Creature refuses entirely. It may depart or demand an unreasonable price to even begin negotiations."],
+        ["Critical Failure", "Creature is offended. It may attack, alert something worse, or return bearing a grudge."],
     ]
-    rcp_data[0] = [Paragraph(c, S['TableHeader']) for c in rcp_data[0]]
-    for i in range(1, len(rcp_data)):
-        rcp_data[i] = [Paragraph(rcp_data[i][j],
+    contract_demands[0] = [Paragraph(c, S['TableHeader']) for c in contract_demands[0]]
+    for i in range(1, len(contract_demands)):
+        contract_demands[i] = [Paragraph(contract_demands[i][j],
             S['TableCellCenter'] if j == 0 else S['TableCell']) for j in range(2)]
-    story.append(Table(rcp_data, colWidths=[0.9*inch, 5.4*inch], style=table_style()))
-    story.append(body("Reducing ritual CoR: extended rest away from ritual work removes 1 CoR after a full month of abstinence. Cleansing rituals can also remove CoR on a successful roll."))
-    story.append(sp(4))
-
-    story += section("VII. Sequence & Rituals")
-    story.append(body(
-        "Sequence advancement helps rituals indirectly through growing resources and unlocked abilities, "
-        "rather than providing any direct bonus to ritual success."
-    ))
+    story.append(Table(contract_demands, colWidths=[1.5*inch, 4.8*inch], style=table_style()))
     story.append(sp(2))
-    story.append(body("Higher Sequence helps rituals in these ways:"))
-    seq_effects = [
-        ["Factor", "Effect on Rituals"],
-        ["SPI pool grows", "You gain more raw spirituality as you advance. Typical maximum SPI: Seq 9 = 3-6, Seq 8 = 5-9, Seq 7 = 8-14. This lets you fuel bigger effects."],
-        ["Pathway abilities unlock", "Some Sequences grant specific ritual perks (e.g., Mystery Pryer's Quick Rituals at Seq 9, or the ability to perform certain rituals without full preparation). See your pathway entry."],
-        ["Self-powered results strengthen", "The outcome of Praying to Oneself scales with personal power — a higher-Sequence Beyonder produces a stronger result from the same roll. This is Daly's principle: a weak result for the weak, a strong result for the strong."],
-    ]
-    seq_effects[0] = [Paragraph(c, S['TableHeader']) for c in seq_effects[0]]
-    for i in range(1, len(seq_effects)):
-        seq_effects[i] = [Paragraph(c, S['TableCell']) for c in seq_effects[i]]
-    story.append(Table(seq_effects, colWidths=[1.8*inch, 4.5*inch], style=table_style()))
-    story.append(sp(3))
-
     story.append(body(
-        "<b>Example:</b> A Sequence 9 Mystery Pryer invoking the Hidden Sage for a divination: "
-        "Ritualistic Magic 14 + invocation roll = effective skill 14-19 (depending on entity response). "
-        "A Sequence 7 Hunter attempting the same ritual: Ritualistic Magic 14 + invocation roll = "
-        "effective skill 14-19 as well — Sequence does not inherently favour either. The difference "
-        "is in the tools available: the Mystery Pryer has a naturally larger SPI pool and pathway "
-        "abilities that support divination, while the Hunter must rely on preparation and invocation."
-    ))
-
-    story += section("VIII. Sample Rituals")
-    story.append(body(
-        "The following worked examples show how the system operates in play. Each assumes a caster "
-        "with Ritualistic Magic-14. All rolls are against the effective skill after modifiers."
+        "What a creature demands depends on its nature and power. Demands are always costly or specifically "
+        "inconvenient to the summoner — this discourages stacking multiple contracts. Common examples include: "
+        "<b>Spirituality</b> (a fixed SPI tithe paid weekly), <b>Blood</b> (a few HP per summoning), "
+        "<b>Money</b> (a significant sum of coin or valuables), <b>Information</b> (secrets the summoner "
+        "would rather keep hidden), <b>Essences</b> (rare herbs, mystical ingredients, potion residues), "
+        "or <b>Specific Burdens</b> (read a forbidden text aloud once a month, surrender a treasured memory, "
+        "perform a humiliating public act). The GM adjudicates what a given creature would reasonably accept."
     ))
     story.append(sp(3))
 
-    def ritual_block(title, category, base_diff, time_req, intent, setup, modifiers, eff_skill, spi_cost, on_success, on_fail, on_crit):
-        block = []
-        block.append(Paragraph(f"<b>{title}</b>", S['SubSection']))
-        meta_data = [
-            ["Category", "Base Difficulty", "Time"],
-            [category, base_diff, time_req],
-        ]
-        meta_data[0] = [Paragraph(c, S['TableHeader']) for c in meta_data[0]]
-        meta_data[1] = [Paragraph(c, S['TableCellCenter']) for c in meta_data[1]]
-        block.append(Table(meta_data, colWidths=[2.0*inch, 1.8*inch, 2.5*inch], style=table_style()))
-        block.append(sp(2))
-        block.append(body(f"<b>Intent:</b> {intent}"))
-        block.append(body(f"<b>Setup:</b> {setup}"))
-        block.append(sp(2))
-        mod_rows = [["Modifier Source", "Value"]] + modifiers
-        mod_rows[0] = [Paragraph(c, S['TableHeader']) for c in mod_rows[0]]
-        for i in range(1, len(mod_rows)):
-            mod_rows[i] = [Paragraph(mod_rows[i][j],
-                S['TableCellCenter'] if j == 1 else S['TableCell']) for j in range(2)]
-        block.append(Table(mod_rows, colWidths=[3.8*inch, 2.5*inch], style=table_style()))
-        block.append(sp(2))
-        block.append(body(f"<b>Effective Skill:</b> {eff_skill}"))
-        block.append(body(f"<b>SPI Cost:</b> {spi_cost}"))
-        block.append(body(f"<b>On Success:</b> {on_success}"))
-        block.append(body(f"<b>On Failure:</b> {on_fail}"))
-        block.append(body(f"<b>On Critical Failure:</b> {on_crit}"))
-        block.append(thin_rule())
-        return block
-
-    story += ritual_block(
-        "Ritual 1: Luck Enhancement",
-        "Enhancement", "-2", "30 minutes",
-        "Improve one person's luck for one week, giving them +1 to all social skill rolls.",
-        "A quiet dedicated room with candles. The caster has a lock of the target's hair and knows their full name.",
-        [
-            ["Enhancement base difficulty", "-2"],
-            ["Proper dedicated space", "+0"],
-            ["True name + intimate possession (hair)", "+4"],
-            ["Net modifier", "+2"],
-        ],
-        "14 + 2 = 16",
-        "4 SPI (moderate duration, single target)",
-        "The target gains +1 to all social skill rolls for one week. Success by 5+ extends to two weeks or raises the bonus to +2 for one category.",
-        "Nothing happens. SPI is spent.",
-        "The luck inverts. The target suffers -1 to social rolls for the same duration and will not know why."
-    )
-
-    story += ritual_block(
-        "Ritual 2: Divination — Seeking a Hidden Location",
-        "Divination", "+0", "45 minutes (extended)",
-        "Discover the current location of a specific missing person.",
-        "A bowl of still water as a scrying focus. The caster has the target's personal journal and writes their full name in their own blood on a slip of paper placed beneath the bowl.",
-        [
-            ["Divination base difficulty", "+0"],
-            ["Proper dedicated space", "+0"],
-            ["True name + intimate possession (journal + blood)", "+4"],
-            ["Extended ritual (45 min vs 30 min base)", "+1"],
-            ["Net modifier", "+5"],
-        ],
-        "14 + 5 = 19",
-        "3 SPI (simple category, single fact)",
-        "GM reveals a general location: a city district, near water, underground in a stone room. Success by 5+ gives a recognizable landmark or street name.",
-        "A vague symbolic image — possibly misleading, possibly simply incomplete.",
-        "The missing person — or something near them — becomes aware that someone is looking for them."
-    )
-
-    story += ritual_block(
-        "Ritual 3: Summoning a Minor Spirit",
-        "Summoning", "-4", "1 hour",
-        "Call a low-level local spirit to the ritual space and ask it one question about local events.",
-        "A long-used sanctified ritual study. Appropriate offerings: incense, small food items, objects tied to the location's history. Two trained assistants help. The caster invokes rather than using personal SPI.",
-        [
-            ["Summoning base difficulty", "-4"],
-            ["Long-used sanctified space", "+2"],
-            ["Appropriate offerings (materials)", "+2"],
-            ["Two trained assistants", "+2"],
-            ["No true name (category name only)", "+0"],
-            ["Net modifier", "+2"],
-        ],
-        "14 + 2 = 16. GM then rolls secretly on the Entity Response Table.",
-        "7 SPI, split among caster and assistants (3/2/2). Power source: Invocation.",
-        "A minor spirit manifests. It is not bound. It may answer the question, demand a small offering, answer obliquely, or be hostile — it cannot be commanded.",
-        "Nothing comes. The space may feel disturbed for days.",
-        "Something answers that was not invited. The GM decides what it is and what it wants."
-    )
-
-    story += ritual_block(
-        "Ritual 4: Curse of the Unlucky Hand",
-        "Curse", "-3", "30 minutes",
-        "Inflict persistent bad luck on a merchant rival — causing their business dealings to go subtly wrong for one month.",
-        "The caster has a coin the target personally handled and their full name. The ritual uses the caster's own blood (HP sacrifice) to supplement SPI costs. A proper dedicated space.",
-        [
-            ["Curse base difficulty", "-3"],
-            ["Proper dedicated space", "+0"],
-            ["True name known", "+3"],
-            ["One month duration (longer than one week)", "-1"],
-            ["Net modifier", "-1"],
-        ],
-        "14 - 1 = 13",
-        "7 SPI (or 5 SPI + 4 HP sacrifice)",
-        "The target suffers -1 to all Commerce, Fast-Talk, and Merchant skill rolls for one month.",
-        "The curse does not take hold. The coin grows briefly warm.",
-        "Roll on the Critical Failure Table. The target may also feel the attempt — a cold chill, sudden anxiety."
-    )
-
-    story += ritual_block(
-        "Ritual 5: Oath-Sealing Between Two Parties",
-        "Oath-Sealing", "-3", "30 minutes",
-        "Bind two willing individuals to a mutual agreement: neither will reveal the location of a safehouse. Consequence of breaking: persistent insomnia (-2 to IQ-based rolls) until amends are made.",
-        "Both parties present and verbally agreeing. A small cut from each hand dripped onto a shared paper on which the oath terms are written. A proper ritual space.",
-        [
-            ["Oath-Sealing base difficulty", "-3"],
-            ["Both parties willing", "+0"],
-            ["Proper dedicated space", "+0"],
-            ["True names of both parties (+ intimate link via blood)", "+4"],
-            ["Net modifier", "+1"],
-        ],
-        "14 + 1 = 15",
-        "5 SPI (paid by the officiating caster)",
-        "The oath is sealed. Both parties feel a faint pressure. If either breaks it, the insomnia effect activates within 24 hours. Those with Thaumatology can identify a bound individual with a successful skill roll.",
-        "The ritual fails silently. Neither party knows. The oath has no spiritual weight.",
-        "The oath seals incorrectly — consequences may activate immediately on one random party, or the terms are subtly inverted."
-    )
-
-    story += ritual_block(
-        "Ritual 6: Fabrication — Warding Talisman",
-        "Fabrication", "-3", "3 hours (extended)",
-        "Create a small talisman (carved wooden disc) that, when activated, grants DR 2 against one incoming spiritual effect. Single use.",
-        "A proper dedicated space. Wood carved from a tree that stood over a gravesite (symbolically appropriate for warding). Protective symbols etched. Triple the base time for additional precision.",
-        [
-            ["Fabrication base difficulty", "-3"],
-            ["Proper dedicated space", "+0"],
-            ["Symbolically resonant materials (grave-tree wood)", "+2"],
-            ["Extended ritual (triple time)", "+2"],
-            ["Single-use object (not permanent)", "+1"],
-            ["Net modifier", "+2"],
-        ],
-        "14 + 2 = 16",
-        "6 SPI",
-        "The talisman is created. The bearer activates it as a free action when targeted by a spiritual effect, applying DR 2 against it. Success by 5+ grants 2 uses instead of 1.",
-        "The talisman is inert. SPI spent. Materials are not reusable.",
-        "The talisman is created but inverted — it functions as a beacon for spiritual attention rather than a ward."
-    )
-
-    story += ritual_block(
-        "Ritual 7: Binding a Spirit to an Object",
-        "Binding", "-4", "3 hours (extended)",
-        "Bind a specific minor spirit (previously summoned) to a carved stone vessel. Duration: indefinite.",
-        "Long-used sanctified space. The spirit's category name and a partial true name. Materials: the carved vessel, silver wire, protective symbols. Two trained assistants. Triple time for safety.",
-        [
-            ["Binding base difficulty", "-4"],
-            ["Long-used sanctified space", "+2"],
-            ["Partial true name", "+2"],
-            ["Appropriate materials (silver, carved vessel)", "+2"],
-            ["Two trained assistants", "+2"],
-            ["Extended ritual (triple time)", "+2"],
-            ["Indefinite duration", "-3"],
-            ["Net modifier", "+3"],
-        ],
-        "14 + 3 = 17",
-        "9 SPI split between caster and assistants (4/3/2)",
-        "The spirit is bound. It cannot leave the vessel. It retains its intelligence and will, and it is unhappy. It may communicate with visitors or wait for the vessel to be destroyed.",
-        "The spirit is not bound but is present and now irritated. It may leave, attack, or demand compensation.",
-        "The binding attempts to trap the caster's own spiritual self in the vessel. Roll Will at -4 to resist. The spirit escapes."
-    )
-
-    story.append(sp(4))
-
-    story += subsection("Ritual 8: Standard Sacrificial Ritual")
-    story.append(body(
-        "The formalized procedure to sacrifice items, materials, or living beings to an entity "
-        "in exchange for power or favor. Uses the standard Full Ritual procedure (Section III)."
+    story += subsection("Summoning Incantation")
+    story.append(body("The incantation has three parts:"))
+    story.append(bbullet(
+        "<b>Part 1:</b> \"I.\" — spoken in Ancient Hermes, Jotun, Dragonese, or Elvish."
     ))
-    story.append(bullet("<b>Base Difficulty:</b> -2 (minor offering) to -6 (living sacrifice)"))
-    story.append(bullet("<b>Setup:</b> Altar with the offering prominently placed. Incantation must name the entity and state the requested exchange."))
-    story.append(bullet("<b>Key Modifier:</b> Offering quality (GM discretion): Trivial +0, Meaningful +2, Precious +4. Living sacrifice: +2 per sentient being."))
-    story.append(bullet("<b>SPI Cost:</b> 2–4 SPI (the offering itself provides most of the power)"))
-    story.append(bullet("<b>On Success:</b> The entity accepts. The offered item is consumed/destroyed. The caster's request is granted or noted."))
-    story.append(bullet("<b>On Failure:</b> The offering is consumed but the entity does not respond. SPI is lost."))
-    story.append(bullet("<b>Critical Failure:</b> The entity is offended. Roll on Critical Failure Table with +2 to the result."))
-    story.append(sp(3))
-
-    story += subsection("Ritual 9: Dualistic Ritual")
-    story.append(body(
-        "A specialized ritual requiring a male and female participant working in spiritual union. "
-        "Used for certain high-risk advancements, blessings, or spiritual communions. Both participants "
-        "must be willing and spiritually attuned to each other."
+    story.append(bbullet(
+        "<b>Part 2:</b> \"I summon in my name.\" — spoken in Hermes."
     ))
-    story.append(bullet("<b>Base Difficulty:</b> -4"))
-    story.append(bullet("<b>Setup:</b> Both participants present at a neutral altar. Matching sets of candles (one per participant). "
-                        "Incantation uses first-person plural — the ritual treats both as a single spiritual entity."))
-    story.append(bullet("<b>Key Modifier:</b> Both participants share a bond (trust/romance/same pathway) +2. "
-                         "Good spiritual attunement +1. Poor attunement -1 to -3."))
-    story.append(bullet("<b>SPI Cost:</b> 4–8 SPI, split evenly between participants"))
-    story.append(bullet("<b>On Success:</b> The union is recognized by the spirit world. The intended effect manifests as desired."))
-    story.append(bullet("<b>On Failure:</b> Spiritual dissonance. Both participants suffer -2 to all spiritual rolls for 1d days."))
-    story.append(bullet("<b>Critical Failure:</b> The union inverts — one participant is dominated by the other's spiritual imprint for 1d weeks "
-                        "(GM determines consequences)."))
-    story.append(sp(3))
-
-    story += subsection("Ritual 10: Bestowment Ritual (Charm Creation)")
-    story.append(body(
-        "By carving an object with specific symbols and words in a mystical language and praying to an entity "
-        "(or to oneself if at Sequence 7 or above) you are able to infuse these objects with the powers from "
-        "the domains of the supplier and gain specific one-time use abilities in the case of consumables and "
-        "mystical items that have a finite lifespan. The object must either be a plate or bullets of an "
-        "appropriate material to the entity's domain, or an appropriate object to the ability requested "
-        "(up to the GM); however, in the second case gain an additional -3 disadvantage to the final "
-        "Ritualistic Magic roll due to consumables being 'easier'."
+    story.append(bbullet(
+        "<b>Part 3:</b> A <b>three-line description</b> of the creature: "
+        "Line 1 points to the Spirit World (e.g., \"The spirit that wanders about the unfounded\" or "
+        "\"Roaming in the upper realm\"). Lines 2–3 accurately describe the creature. "
+        "After a contract is signed, Line 3 becomes \"The messenger that belongs to [name]\" or "
+        "\"Contract Companion of [name]\"."
     ))
     story.append(body(
-        "<b>The steps are as follows:</b>"
-    ))
-    story.append(bullet(
-        "<b>Step 1:</b> Gather all the required tools (jewellery chisels, files) and primary object."
-    ))
-    story.append(bullet(
-        "<b>Step 2:</b> Prepare the plate, bullets or object by rolling Thaumatology. On success, "
-        "manage to inscribe the proper symbols, patterns and words upon it. On failure: the object "
-        "is turned into scrap that needs to be melted down."
-    ))
-    story.append(bullet(
-        "<b>Step 3:</b> Request a specific ability within the domain of the entity you are praying to "
-        "(or if praying to oneself, request abilities that you possess). Depending on the powers "
-        "requested, the GM may impose additional disadvantages depending on how much you are asking for. "
-        "Roll Ritualistic Magic (IQ/Very Hard) with all applicable modifiers as normal. Depending on "
-        "the degree of success, gain an appropriately levelled charm or mystical item. On failure the "
-        "object is destroyed. On critical failure, gain additional corruption (up to the GM)."
-    ))
-    story.append(body(
-        "<b>Important:</b> When creating charms or mystical items with abilities equivalent to that of "
-        "Sequence 4 or higher, you need to use demigod-level materials in order for their creation to be possible."
-    ))
-    story.append(body(
-        "<b>Pathways and their respective common materials for consumables:</b>"
-    ))
-    story.append(body(
-        "<font color='#C0392B'><b>Pathway</b></font> / <b>Material</b><br/>"
-        "<font color='#C0392B'>Fool</font> / Silver, Paper<br/>"
-        "<font color='#C0392B'>Error</font> / Silver, Mercury<br/>"
-        "<font color='#C0392B'>Door</font> / Silver, Gemstones<br/>"
-        "<font color='#C0392B'>Visionary</font> / Gold, Silver<br/>"
-        "<font color='#C0392B'>Sun</font> / Gold<br/>"
-        "<font color='#C0392B'>White Tower</font> / Bronze<br/>"
-        "<font color='#C0392B'>Hanged Man</font> / Lead, Flesh<br/>"
-        "<font color='#C0392B'>Darkness</font> / Silver<br/>"
-        "<font color='#C0392B'>Death</font> / Copper, Silver, Bone<br/>"
-        "<font color='#C0392B'>Twilight Giant</font> / Bronze, Silver, Steel<br/>"
-        "<font color='#C0392B'>Demoness</font> / Silver, Bone<br/>"
-        "<font color='#C0392B'>Red Priest</font> / Iron<br/>"
-        "<font color='#C0392B'>Hermit</font> / Gold, Bronze<br/>"
-        "<font color='#C0392B'>Paragon</font> / Copper, Bronze, Brass<br/>"
-        "<font color='#C0392B'>Wheel of Fortune</font> / Silver, Mercury<br/>"
-        "<font color='#C0392B'>Mother</font> / Tin, Wood<br/>"
-        "<font color='#C0392B'>Moon</font> / Silver<br/>"
-        "<font color='#C0392B'>Abyss</font> / Iron, Lead<br/>"
-        "<font color='#C0392B'>Chained</font> / Iron<br/>"
-        "<font color='#C0392B'>Black Emperor</font> / Gold, Iron<br/>"
-        "<font color='#C0392B'>Justiciar</font> / Gold, Brass"
-    ))
-    story.append(body(
-        "(For all pathways: materials taken and extracted from beings that possess main ingredients to the "
-        "potions of that pathway are amazing additives and will grant an appropriate bonus to the "
-        "Thaumatology roll (up to the GM). In the case of high-sequence consumables and mystical items, "
-        "appropriate high-sequence materials are necessary.)"
-    ))
-    story.append(sp(4))
-
-    story.append(PageBreak())
-
-    # ── Chapter 7.5: Summoning Spiritual Creatures ──
-    story += chapter("Chapter 7.5: Summoning Spiritual Creatures")
-    story.append(sp(2))
-
-    story.append(body(
-        "Within the Physical World, Spirit World, Shadow World, Sea of Eternal Unconscious, "
-        "Mirror World, and other realms of reality, a variety of different spiritual creatures "
-        "exist. By finding or creating a specific three-line incantation and performing a ritual, "
-        "one may summon these mystical beings and ask them for favours or create mystical contracts "
-        "with them."
+        "The summoner cannot use too many words. Ambiguity makes it difficult to predict which creature "
+        "will answer — strongly advised to use previously tested and verified incantations."
     ))
     story.append(sp(3))
 
-    story += subsection("Creating an Incantation")
+    story += subsection("Dismissing & Retrying")
     story.append(body(
-        "In order to summon a mystical being one needs to discover or create a three-line "
-        "incantation that points to a specific spiritual creature. The first line should be the "
-        "resident realm of the creature (The Unfounded, the Spirit Realm, the Darkness, etc.). "
-        "The second and third lines should be accurate descriptors of the creature."
-    ))
-    story.append(sp(3))
-
-    story += subsection("Summoning Methods")
-    story.append(body(
-        "There are two ways to summon a spiritual creature: one is by using one's own spirituality "
-        "and authority, and the other is by supplicating a higher being for their assistance. "
-        "Both methods use a similar principle, but the second requires a complex religious ritual."
-    ))
-    story.append(sp(3))
-
-    story += subsection("The Summoning Ritual")
-    story.append(body(
-        "After acquiring or creating the incantation, one needs to set up a basic or complex altar "
-        "(depending on whether they will be using the authority of a great being). Then, in an "
-        "ancient mystical language (Ancient Hermes, Jotun Dragonese, Elvish), declare: \"I\". Then "
-        "in a regular mystical language (Hermes, Ancient Feysac), declare: \"I summon in my name\" "
-        "or \"I summon in the name of [insert supplicator's full title or honorific name]\". "
-        "Continue and pronounce the summoning incantation."
+        "If the summoned creature is unsatisfactory, end the ritual by chanting "
+        "<i>\"I! I end this summoning in my name!\"</i> in Hermes, then extinguish the candle. "
+        "The creature returns to the Spirit World. You may restart the ritual with the same altar."
     ))
     story.append(body(
-        "Roll Ritualistic Magic with all applicable modifiers. The GM must roll an additional 3d "
-        "for the creature's response — the better the response, the higher the chance they will "
-        "peacefully arrive; the worse the response, the lesser the chance that they will arrive, "
-        "or they will arrive and attempt to harm the summoner."
-    ))
-    story.append(sp(3))
-
-    story += subsection("Communication & Requests")
-    story.append(body(
-        "After successfully summoning the spiritual creature, the summoner may communicate with "
-        "the creature in a regular mystical language, or in a regular living language if it is "
-        "capable of communicating in it. Simply by summoning the creature, the summoner has already "
-        "'paid' spirituality to it — as such, the summoner may request the spiritual creature to "
-        "perform a task for them."
+        "The summoning can be simplified through focus items — for example, "
+        "Azik Eggers' copper whistle or Gehrman Sparrow's silver harmonica can replace the full incantation "
+        "for a specific known creature."
     ))
     story.append(sp(3))
 
     story += subsection("Mystical Contracts")
     story.append(body(
-        "If the summoner desires to form a contract, they may do so in one of three ways: "
-        "(a) have a greater being oversee the contract's formation, (b) have a being within the "
-        "domain of death or the underworld oversee it instead, or (c) have an ability or authority "
-        "to create contracts (Certifiers, Spirit Mediums, Spirit Warlocks, Mystery Pryers, "
-        "Contractees, Shadow Merchants, etc.). Upon penning a contract in a mystical language, "
-        "if both parties consent, it becomes binding and both parties will follow the contract. "
-        "Even without using one of the three methods, it is still possible to pen a contract — "
-        "however, the possibility that the mystical creature will break it is not off the table."
+        "The contract is written in <b>Ancient Hermes</b> on yellowish-brown goatskin parchment. "
+        "It contains clauses — such as the messenger not looking at letters, not discarding them, "
+        "or not endangering the contractor's life. Additional terms depend on negotiation."
+    ))
+    story.append(body(
+        "To ensure effectiveness, the <b>final part of the contract requires Death's honorific name</b> "
+        "(Salinger, the God of Death) or a description of someone high in the undead domain or the "
+        "Underworld itself. The contract also needs the powers of the undead domain to seal it."
+    ))
+    story.append(body(
+        "The contractor's aura enters the contract, so a real name signature is not required. "
+        "However, the summoning incantation demands the correct name to accurately summon that creature."
+    ))
+    story.append(body(
+        "A contracted creature can be <b>transferred</b> from one owner to another, "
+        "but a new contract must still be signed between the new owner and the creature."
     ))
     story.append(sp(3))
 
     story += subsection("Creature Format")
-    story.append(body(
-        "The abilities, appearance, and other properties of the creature are determined by the GM. "
-        "The following format should be used:"
-    ))
+    story.append(body("The GM determines each creature's properties. Standard format:"))
     story.append(bullet("<b>Name:</b>"))
     story.append(bullet("<b>Appearance:</b>"))
     story.append(bullet("<b>Other Properties:</b>"))
@@ -5151,130 +4336,17 @@ def build():
 
     story += subsection("Example Creature: Bookworm")
     story.append(bullet("<b>Name:</b> Bookworm"))
-    story.append(bullet("<b>Appearance:</b> An illusory pale blue worm that has letters from "
-                        "different languages coursing under its skin. It has a head with a single "
-                        "human-like eye and is around 5 cm in length."))
-    story.append(bullet("<b>Other Properties:</b> Capable of speaking in Loenese and Intisian. "
-                        "It sounds like a high-pitched but wisdom-filled old man's voice."))
-    story.append(bullet("<b>Contract Cost:</b> A piece of rare information that the Bookworm "
-                        "does not know yet."))
+    story.append(bullet("<b>Appearance:</b> Illusory pale blue worm, 5 cm, with letters "
+                        "from different languages coursing under its skin. One human-like eye. "
+                        "Speaks in a high-pitched, wisdom-filled old man's voice in Loenese and Intisian."))
+    story.append(bullet("<b>Contract Cost:</b> A piece of rare information the Bookworm does not yet know."))
     story.append(bullet("<b>Attributes:</b> 4 HP"))
-    story.append(bullet("<b>Ability — Book Reading (1 SPI):</b> The Bookworm can read through "
-                        "a novel-length book in only a couple of minutes."))
-    story.append(bullet("<b>Ability — Knowledge Transmission (1 SPI):</b> By the contractor's "
-                        "request, the Bookworm will transmit the knowledge from the most recently "
-                        "read book by burrowing into the contractor's head. The contractor may "
-                        "request specific information from the book, e.g. \"Only provide the pie "
-                        "recipes from this cookbook\"."))
+    story.append(bullet("<b>Ability — Book Reading (1 SPI):</b> Read a novel-length book in minutes."))
+    story.append(bullet("<b>Ability — Knowledge Transmission (1 SPI):</b> Transmit knowledge from the "
+                        "most recently read book by burrowing into the contractor's head. May filter by request."))
     story.append(sp(4))
 
-    story.append(PageBreak())
-
-    story += chapter("Chapter 7.6: Spirit Vision — A Complete Guide")
-    story.append(sp(2))
-    story.append(body(
-        "The spirit sees what the eye cannot. Through Spirit Vision, Beyonders perceive the auras "
-        "of life — colors of emotion, threads of health, darkness of corruption. "
-        "Activate by expending 1 SPI."
-    ))
-    story.append(sp(3))
-
-    story += section("A. Astral Projection Colors")
-    story.append(body(
-        "The Astral Projection lies beneath the Ether Body and reveals emotional state:"
-    ))
     
-    astral_data = [
-        ["Color", "Meaning"],
-        ["Red", "Passion, excitement, anger"],
-        ["Orange", "Warmth, satisfaction"],
-        ["Yellow", "Happiness, extroversion"],
-        ["Green", "Calm, peace, balance"],
-        ["Blue", "Coldness, stillness, logic"],
-        ["White", "Brightness, ambition"],
-        ["Dark", "Worry, sorrow, fear"],
-        ["Purple", "Spirituality, madness"],
-    ]
-    astral_data[0] = [Paragraph(c, S['TableHeader']) for c in astral_data[0]]
-    for i in range(1, len(astral_data)):
-        astral_data[i] = [Paragraph(c, S['TableCell']) for c in astral_data[i]]
-    story.append(Table(astral_data, colWidths=[1.0*inch, 5.3*inch], style=table_style()))
-
-    story.append(sp(2))
-
-    story += section("B. Ether Body Colors")
-    story.append(body(
-        "The Ether Body is the outermost layer — shows physical health:"
-    ))
-    
-    ether_data = [
-        ["Body Region", "Color"],
-        ["Limbs active", "Red"],
-        ["Brain", "Purple"],
-        ["Waste systems", "Orange"],
-        ["Digestion", "Yellow"],
-        ["Heart/reg", "Green"],
-        ["Nerves", "Blue"],
-        ["Healthy", "White"],
-        ["Ill", "Dark/Thin"],
-    ]
-    ether_data[0] = [Paragraph(c, S['TableHeader']) for c in ether_data[0]]
-    for i in range(1, len(ether_data)):
-        ether_data[i] = [Paragraph(c, S['TableCell']) for c in ether_data[i]]
-    story.append(Table(ether_data, colWidths=[1.3*inch, 3.9*inch], style=table_style()))
-
-    story.append(sp(2))
-    story.append(body("A balanced body appears <b>white</b>. Darkness or thinning indicates illness."))
-
-    story.append(sp(2))
-    story += section("C. Pathway Differences")
-    story.append(body(
-        "Not all Beyonders perceive equally. Pathway and Sequence determine what can be seen:"
-    ))
-    
-    path_data = [
-        ["Pathway (Seq 9)", "Sequence", "Spirit Vision Ability"],
-        ["Seer (Fool)", "9", "Standard: Ether Body + Astral"],
-        ["Mystery Pryer (Hermit)", "9", "<b><font color='#C0392B'>Eyes of Mystery Prying:</font></b> See truth, reality, Astral Body"],
-        ["Spectator (Visionary)", "9", "Enhanced: Read emotions & thoughts"],
-        ["Sleepless (Darkness)", "9", "Limited: Spiritual entities only (no Ether Body analysis)"],
-        ["Corpse Collector (Death)", "9", "Passive: See spirits & undead without activation"],
-    ]
-    path_data[0] = [Paragraph(c, S['TableHeader']) for c in path_data[0]]
-    for i in range(1, len(path_data)):
-        path_data[i] = [Paragraph(c, S['TableCell']) for c in path_data[i]]
-    story.append(Table(path_data, colWidths=[1.2*inch, 0.9*inch, 4.2*inch], style=table_style()))
-
-    story.append(sp(2))
-    story += section("D. Reading Spirit Vision")
-    story.append(body(
-        "<b>Using <font color='#C0392B'>Spirit Vision:</font></b> Activate by expending 1 SPI (1 SPI per minute to maintain). "
-        "Make a Perception-based roll to interpret correctly."
-    ))
-    
-    roll_data = [
-        ["Roll", "Effect"],
-        ["Success", "Identify primary emotion or general health"],
-        ["Success by 3+", "Detect specific feelings"],
-        ["Success by 5+", "Sense recent events"],
-        ["Critical", "Full reading"],
-        ["Failure", "Incorrect reading"],
-    ]
-    roll_data[0] = [Paragraph(c, S['TableHeader']) for c in roll_data[0]]
-    for i in range(1, len(roll_data)):
-        roll_data[i] = [Paragraph(c, S['TableCell']) for c in roll_data[i]]
-    story.append(Table(roll_data, colWidths=[1.3*inch, 4.9*inch], style=table_style()))
-
-    story.append(sp(2))
-    story.append(body(
-        "<b>Special Forms:</b> Ether Body Awareness (Seer), "
-        "<b><font color='#C0392B'>Eyes of Mystery Prying</font></b> (Mystery Pryer), "
-        "Enhanced Emotions (Spectator), "
-        "Limited Form (Sleepless), "
-        "Passive Spirit Vision (Corpse Collector)."
-    ))
-    
-
     story.append(PageBreak())
 
     story += chapter("Chapter 8: Equipment & Starting Wealth")
@@ -5362,7 +4434,7 @@ def build():
 
     story += section("Starting Wealth by Economic Status")
     wealth_data = [
-        ["Status", "Starting Money", "Reaction Modifier", "Lifestyle"],
+        ["Status", "Starting Money", "Social Weight", "Lifestyle"],
         ["Dead Broke (-25 pts)", "£0", "−2", "No home; beg or steal for every meal"],
         ["Poor (-15 pts)", "5 soli", "−1", "Boarding house; barely afford basic food"],
         ["Struggling (-10 pts)", "15 soli", "0", "Modest room; occasional luxuries"],
@@ -5379,11 +4451,11 @@ def build():
     story.append(sp(2))
     story.append(body(
         "Your Wealth level determines your social <b>Status</b>. This affects how NPCs react to you: "
-        "<b>+1</b> to reaction rolls per Status level above Average (e.g., Wealthy is Status 2 → +2), "
-        "and <b>−1</b> per level below Average (e.g., Poor is Status −1 → −1). "
-        "Status 0 (Average) grants no modifier. GMs may limit this modifier based on context — "
+        "higher Status commands deference, attention, and trust from most people, while lower Status "
+        "invites indifference or disdain. The GM determines how NPCs respond based on the situation — "
         "a shabby dockworker cares little for a noble's title, and a wealthy merchant gets no respect "
-        "in a den of cutthroats."
+        "in a den of cutthroats. Social Weight values in the table serve as a guideline for the GM "
+        "to gauge the general attitude of neutral NPCs."
     ))
     story.append(sp(3))
 
@@ -5506,7 +4578,7 @@ def build():
         ["Dark clothes (quality)", "8s", "As above; blends in at social functions too"],
         ["Spare clothes (servant class)", "5s", "Clean change for social situations"],
         ["Fine clothes (quality)", "£1 10s", "+1 to Savoir-Faire (High Society); status marker"],
-        ["Velvet shawl", "12s", "Warmth; +1 to reaction from romantic interests"],
+        ["Velvet shawl", "12s", "Warmth; romantic interests may find you more appealing (GM discretion)"],
         ["Spectacles (reading)", "5s", "Corrects vision; -3 to Search without them if shortsighted"],
 
         equip_header("Specialized Equipment"),
@@ -5678,8 +4750,9 @@ def build():
         "cost on the point-cost ladder in <b>Chapter 3: Character Creation</b> and pay it."
     ))
     story.append(body(
-        "<b>Exception — SPI-based skills</b> (Spiritual Intuition, Spiritual Perception, Divination Arts) "
-        "cannot be raised with character points. They improve only through Sequence progression and pathway bonuses."
+        "<b>Exception — Spiritual Intuition</b> cannot be raised with character points. It improves only through "
+        "Sequence progression and pathway bonuses. <b>Spiritual Perception and Divination Arts</b> can be purchased "
+        "and improved with character points like any other skill."
     ))
     story.append(sp(2))
     story.append(body(
@@ -5975,11 +5048,12 @@ def build():
              "entity, the Mystery Pryer must make an immediate Will roll or gain 1 CoR from witnessing "
             "things the mind was not meant to see. The GM may call for additional Will rolls whenever the Pryer "
             "glimpses truly forbidden knowledge.\n"
-              "<b><font color='#C0392B'>Spirit Contract (Ritual):</font></b> The Mystery Pryer gains knowledge of how to use "
-             "Ritualistic Magic to form contracts with summoned spirits. A Mystery Pryer may maintain up to "
-             "<b>2 simultaneous contracts</b> at Sequence 9, doubling to <b>4</b> at Sequence 8. "
-             "This remains incredibly dangerous and requires "
-             "proper summoning incantations and other safety measures.\n"
+               "<b><font color='#C0392B'>Spirit Contract (Ritual):</font></b> The Mystery Pryer gains knowledge of the "
+               "Spirit World Creature Contract ritual (Section VI, Chapter 7). The Mystery Pryer's training "
+               "reduces the base difficulty to <b>-5</b> (instead of -8) and the penalty per existing contract to "
+               "<b>-2 per creature</b> they already maintain under contract (instead of -3). A Mystery Pryer "
+               "may maintain up to "
+              "<b>2 simultaneous contracts</b> at Sequence 9, doubling to <b>4</b> at Sequence 8.\n"
              "<b><font color='#C0392B'>Quick Rituals:</font></b> The penalty for rushed rituals is decreased by 3.",
              [("Knowledge Pursuit", "Flat 3d6 roll under 14 — GM decides what information you uncover. "
                "On failure, gain 1 CoR. On critical failure, gain 3 CoR instead. Knowledge revealed is at the GM's "
@@ -6044,9 +5118,16 @@ def build():
            "(or any Seq 9 supplementary ingredient besides liquor). Grants +1 to ST, HT, DX, and Basic Speed for 5 minutes. "
            "After the duration expires, the user loses 1/3 of their remaining FP (round up) and their FP maximum is halved "
            "(round up) until they sleep for at least 8 hours. If current FP exceeds the new cap, it is reduced to match.\n"
-           "• <b>Enhanced Healing Agent (Pharmacy -4):</b> Expensive herbs and rare animal parts costing approximately £20 "
-           "per dose. Grants Very Fast Regeneration for 10 seconds. Costs 1/5 of the user's current FP (round up) — e.g., "
-           "if current FP is 5/10, after use it becomes 4/10.\n"
+            "• <b>Minor Healing Potion (Pharmacy -1, any character with Pharmacy skill):</b> Common herbs and clean bandages. "
+            "Heals 1d-1 HP (minimum 1) immediately. Stops active bleeding. Takes 1 minute to prepare. "
+            "Cost: £1 per dose. Non-Apothecaries can make this with basic first aid knowledge.\n"
+            "• <b>Moderate Healing Potion (Pharmacy -3, requires Apothecary skill):</b> Medicinal herbs, honey, and mineral "
+            "salts. Heals 2d-2 HP (minimum 1) immediately. Cures one minor condition (minor burn, mild infection, light poison). "
+            "Takes 5 minutes to prepare. Cost: £5 per dose. Requires Apothecary skill to brew properly.\n"
+            "• <b>Major Healing Potion (Pharmacy -5, requires Apothecary skill):</b> Rare herbs and spiritual animal parts "
+            "costing approximately £20 per dose. Heals 3d-3 HP (minimum 1) immediately. Cures one serious condition "
+            "(deep wound infection, moderate poison, broken bone). Stabilises critical patients. Takes 10 minutes to prepare. "
+            "Requires Apothecary skill; improper brewing risks minor Toxic damage (1d-2).\n"
            "• <b>Specialised Physical Enhancer (Pharmacy -3):</b> Requires 3 different supplementary ingredients plus a "
            "specific base liquid. Grants +3 to a single attribute for 3 minutes, determined by the base liquid: "
            "hard liquor → ST, soft liquor (wine, etc.) → HT, water → DX. After the duration expires, the user loses "
@@ -6270,7 +5351,7 @@ def build():
 
 
           ("Swindler", "Error Pathway",
-             [("DX", "+1"), ("IQ", "+1"), ("Charisma +1", "+1 to reaction rolls and Influence skills"), ("SPI", "+2")],
+             [("DX", "+1"), ("IQ", "+1"), ("Charisma +1", "+1 to Influence skills; NPCs predisposed to trust you"), ("SPI", "+2")],
             [("Fast-Talk/IQ [Average]", "+5"),
              ("Acrobatics/DX [Hard]", "+2"),
              ("Observation/Per [Average]", "+2")],
@@ -6287,7 +5368,7 @@ def build():
 
             ("Telepathist", "Visionary Pathway",
              [("IQ", "+1"), ("SPI", "+2"),
-             ("Incisive Vision", "+4")],
+             ("Incisive Vision", "Upgraded Acute Vision; +4 to all Vision rolls, read micro-expressions at 10m, see through minor visual illusions")],
          [("Psychology/IQ [Hard]", "+2"),
           ("Detect Lies/Per [Hard]", "+3"),
           ("Acting/IQ [Average]", "+3")],
@@ -6402,7 +5483,7 @@ def build():
           "Only Beyonders with strong spiritual perception or Cogitation abilities may resist — roll either Spiritual Perception/SPI (Hard) "
           "or Will (-2), whichever is higher. Ordinary mortals and spiritually weak beings fall asleep automatically with no roll. "
           "Sleep lasts 1d minutes unless shaken awake. Those who resist fall serene and find it hard to evoke or express emotions "
-          "(-1 to all emotional reaction rolls and social skill rolls) for 1 minute. \n"
+          "(-1 to all social skill rolls and emotional expression) for 1 minute. \n"
          "<b><font color='#C0392B'>Pacify:</font></b> Target loses all desire to act — goes limp and unresponsive. "
          "Cannot take offensive actions; can still defend. Lasts 1d3 turns. Will roll (-3) to resist. \n"
          "<b><font color='#C0392B'>Fear:</font></b> Target is filled with supernatural dread. "
@@ -6454,7 +5535,7 @@ def build():
            ("Instigator", "Demoness Pathway",
              [("DX", "+1"),
               ("Per", "+1"),
-               ("Charisma +2", "+2 to reaction rolls and Influence skills"),
+               ("Charisma +2", "+2 to Influence skills; NPCs predisposed to trust and listen to you"),
                ("SPI", "+1")],
           [("Fast-Talk/IQ [Average]", "+4"),
            ("Psychology/IQ [Hard]", "+4"),
@@ -6631,7 +5712,7 @@ def build():
              [("Bloodlust", "Must go for killing blows in combat. IQ roll to accept surrender or take prisoners."),
              ("Callous", "-3 to social skill rolls when warmth or empathy is required."),
              ("Compulsive Behavior (Indulge Evil Desires) SC 6", "When an opportunity to commit an evil act (murder, torture, betrayal, etc.) presents itself, roll 3d6 ≤ 6 or indulge fully."),
-             ("Unsettling Appearance", "-1 to all reaction rolls due to unsettling appearance")]),
+             ("Unsettling Appearance", "NPCs are unsettled by your presence (GM discretion)")]),
 
            ("Lunatic", "Chained Pathway",
             [("ST", "+2"), ("HT", "+1"), ("SPI", "+1"), ("Berserk (voluntary)", "can choose to sacrifice rationality for power; not forced involuntarily"), ("DR 2 (physical)", "resistance to physical damage"), ("Rapid Healing", "+5 to daily HT rolls to recover HP"), ("Divination/Spirit Channel Resistance", "body and soul are Bound; Divination and Spirit Channeling targeting the Lunatic are at -4")],
@@ -7262,7 +6343,7 @@ def build():
          # ── Demoness Pathway ──
 
           ("Witch", "Demoness Pathway",
-             [("SPI", "+7"), ("Charisma +1", "+1 to reaction rolls and Influence skills"), ("Appearance (Beautiful)", "the potion perfects the Witch's features; +2 to reaction rolls")],
+             [("SPI", "+7"), ("Charisma +1", "+1 to Influence skills; NPCs predisposed to trust you"), ("Appearance (Beautiful)", "the potion perfects the Witch's features; NPCs tend to react favourably (GM discretion)")],
            [("Ritualistic Magic (Mirror, Dowsing)/IQ [Very Hard]", "+4"),
             ("Divination Arts/SPI [Hard]", "+2"),
             ("Occultism/IQ [Average]", "+2")],
@@ -7981,10 +7062,10 @@ def build():
               ("DX", "+1"),
               ("SPI", "+3"),
               ("Per", "+1"),
-              ("Charisma +1", "+1 to reaction rolls and Influence skills"),
+              ("Charisma +1", "+1 to Influence skills; NPCs predisposed to trust you"),
               ("Throat Control", "cannot be easily choked — immune to chokeholds and neck-crushing techniques"),
               ("Greater Acute Vision", "+4 to all vision-based Perception rolls; allows the Pleasure to see their own Spider's Threads"),
-              ("Appearance (Very Beautiful)", "+3 to social reaction rolls")],
+              ("Appearance (Very Beautiful)", "striking appearance draws attention and favourable treatment (GM discretion)")],
            [("Ritualistic Magic/IQ [Very Hard]", "+1")],
 
          "<b><font color='#C0392B'>Spider's Threads:</font></b> The Pleasure can spread spider-like, almost invisible silk threads from her hair "
@@ -8131,8 +7212,8 @@ def build():
           "<b><font color='#C0392B'>Psychological Invisibility (Free, No SPI Cost):</font></b> The Hypnotist can remain in the "
           "blind spot of one's consciousness. This works even against Spirit Vision and a Hunter's Danger Intuition "
           "(until the user prepares to strike). The target will not perceive the user even when standing right before them. "
-          "Strong interactions with the surroundings can break the invisibility. At this Sequence, can only work on one "
-          "target at a time.\n"
+          "Strong interactions with the surroundings can break the invisibility. At this Sequence, can work on multiple "
+          "targets simultaneously.\n"
           "<b><font color='#C0392B'>Reinforced Abilities:</font></b>\n"
           "<b><font color='#C0392B'>Hypnosis (Reinforced):</font></b> Psychological Cue undergoes a qualitative change, becoming Hypnosis.\n"
           "<b><font color='#C0392B'>Non-Combat Hypnosis (2 SPI):</font></b> Open the door and enter the target's Body of Heart and Mind. "
@@ -8185,7 +7266,7 @@ def build():
           "<b><font color='#C0392B'>Flesh Softening (0 Flesh and Blood):</font></b> Negate the next instance of physical damage "
           "except from knives and swords (which slash through).\n"
           "<b><font color='#C0392B'>Disguise (0 Flesh and Blood):</font></b> Modify appearance (muscularity, facial features) "
-          "with practice. -3 to all reaction rolls while in disguise."),
+          "with practice. While in disguise, NPCs who scrutinise you may notice something off (GM discretion)."),
 
           # ── Darkness Pathway ──
 
@@ -8328,7 +7409,7 @@ def build():
           "<b>Anti-Dream Potion (Alchemy -2):</b> Prevents Dream Pulling effects.\n"
           "<b>Shadow Potion (Alchemy -4):</b> Allows Shadow Movement at ×2 Base Move.\n"
           "<b>Known Perfumes include:</b>\n"
-          "<b>Animal-Friendly Perfume (Alchemy -1):</b> Makes animals closer to the user — +5 to reaction rolls with animals.\n"
+          "<b>Animal-Friendly Perfume (Alchemy -1):</b> Makes animals calmer and friendlier toward the user (GM discretion).\n"
           "A true Potions Professor can research and invent new Potions and Perfumes (roll Inventor then Alchemy -4, with GM approval)."),
 
           # ── Abyss Pathway ──
@@ -8614,7 +7695,7 @@ def build():
     ))
     story.append(bullet(
         "<b>Refusal penalty:</b> Once a boon has been accepted, refusing a direct request from "
-        "the patron may incur spiritual backlash (see Critical Failure Table, Chapter 7, Section VI)."
+        "the patron may incur spiritual backlash (see Critical Failure Table, Chapter 7, Section V)."
     ))
     story.append(sp(3))
 
@@ -8647,7 +7728,7 @@ def build():
     nonstandard_seq9 = [
         ("Dancer", "Eternal Aeon (Inevitability) Pathway",
             [("DX", "+2"), ("SPI", "+6"), ("HT", "+1"),
-             ("Double-Jointed", "Super flexible joints; +2 to Escape and any roll involving contortion or squeezing through tight spaces")],
+             ("Double-Jointed", "Ignore up to -5 close-quarters penalties for wrestling or grappling; any body part bends any way")],
             [("Dancing/DX [Average]", "+4"),
              ("Acrobatics/DX [Hard]", "+3")],
           "<b><font color='#C0392B'>Spiritual Dance (1 SPI):</font></b> Roll Dancing skill to begin a strange, "
@@ -8752,7 +7833,7 @@ def build():
 
         ("Broker", "Chaos Mist Pathway",
             [("IQ", "+1"), ("SPI", "+5"),
-             ("Charisma +2", "+2 to reaction rolls and Influence skills")],
+             ("Charisma +2", "+2 to Influence skills; NPCs predisposed to trust and listen to you")],
             [("Fast-Talk/IQ [Average]", "+3"),
              ("Diplomacy/IQ [Hard]", "+4"),
              ("Psychology/IQ [Hard]", "+2"),
@@ -9171,15 +8252,15 @@ def build():
 
     story += section("Spiritual Skills Quick Reference")
     spi_quick = [
-        ["Skill", "Difficulty", "What It Does", "When to Use"],
-        ["Spiritual Intuition", "SPI/Hard", "Sense danger through fate before it happens", "Before danger strikes; suspicious situations"],
-        ["Spiritual Perception", "SPI/Average", "Detect spiritual presences passively or actively", "Entering locations; sensing Beyonders"],
-        ["Divination Arts", "SPI/Hard", "Focused divination: pendulum, coin, dowsing, dream, scrying, tarot", "Gathering hidden information; quick questions"],
+        ["Skill", "Difficulty", "What It Does", "When to Use", "Purchasable?"],
+        ["Spiritual Intuition", "SPI/Hard", "Sense danger through fate before it happens", "Before danger strikes; suspicious situations", "No (pathway only)"],
+        ["Spiritual Perception", "SPI/Average", "Detect spiritual presences passively or actively", "Entering locations; sensing Beyonders", "Yes"],
+        ["Divination Arts", "SPI/Hard", "Focused divination: pendulum, coin, dowsing, dream, scrying, tarot", "Gathering hidden information; quick questions", "Yes"],
     ]
     spi_quick[0] = [Paragraph(c, S['TableHeader']) for c in spi_quick[0]]
     for i in range(1, len(spi_quick)):
         spi_quick[i] = [Paragraph(c, S['TableCell']) for c in spi_quick[i]]
-    story.append(Table(spi_quick, colWidths=[1.1*inch, 0.85*inch, 1.8*inch, 2.6*inch], style=table_style()))
+    story.append(Table(spi_quick, colWidths=[1.1*inch, 0.85*inch, 1.8*inch, 2.0*inch, 0.6*inch], style=table_style()))
     story.append(sp(3))
 
     story += section("CoR & Digestion Reference")
@@ -9605,7 +8686,7 @@ def build():
         ("<b>Potion</b>", "An alchemical brew that grants Beyonder powers. Must be brewed from specific ingredients, then consumed. Brings side effects and corruption risk."),
         ("<b>Sequence</b>", "The numerical rank of a Beyonder's power level. Sequence 9 = newly awakened. Sequence 0 = god-equivalent. Lower numbers are stronger."),
         ("<i>SPI — Spirituality</i>", "A spiritual stat (not a buyable attribute). Measures connection to the spirit world. Fixed at 0 for mortals; increased only by Beyonder potions or supernatural means. Used for Spirit Vision, Ritualistic Magic (as a resource), and Beyonder abilities."),
-        ("<i>Spirit Vision</i>", "A Beyonder ability that reveals auras, Ether Bodies, Astral Bodies, and supernatural entities. Costs 1 SPI per minute to maintain."),
+        ("<i>Spirit Vision</i>", "A Beyonder ability that reveals auras, Ether Bodies, Astral Bodies, and supernatural entities. Costs 1 SPI per activation regardless of duration."),
         ("<b>Sea of Collective Subconscious</b>", "A shared psychic realm containing the unconscious minds of all sentient beings. Accessible via certain Visionary-pathway abilities (e.g., Psychological Cue). The GM determines effects when a character enters this realm."),
         ("<i>3d6</i>", "Three six-sided dice rolled together. The standard die roll for all success checks. Add the three numbers for your result (range 3–18)."),
          ("<i>Will</i>", "Mental fortitude and resistance to influence. = IQ at character creation. Used to resist intimidation, mind control, and CoR."),
@@ -9641,7 +8722,7 @@ def build():
 
     # Merge main PDF + back cover
     from pypdf import PdfReader, PdfWriter
-    main_out = os.path.join(OUTPUT_DIR, "Mr.Worms LOM TTRPG Rulebook v6.9d.pdf")
+    main_out = os.path.join(OUTPUT_DIR, "Mr.Worms LOM TTRPG Rulebook v6.9e.pdf")
     tmp_main = os.path.join(OUTPUT_DIR, "main_body.pdf")
     import shutil
     shutil.copy(main_out, tmp_main)
@@ -9748,8 +8829,7 @@ def back_cover(canvas, doc):
     col1 = ["Chapter 1: Introduction", "Chapter 2: Core Rules", "Chapter 3: Character Creation",
             "Chapter 4: Spirituality", "Chapter 5: Combat",
             "Chapter 6: The Beyonder System", "Chapter 6.5: Divination Arts",
-            "Chapter 7: Ritualistic Magic", "Chapter 7.5: Summoning Spiritual Creatures",
-            "Chapter 7.6: Spirit Vision Guide"]
+            "Chapter 7: Ritualistic Magic"]
     col2 = ["Chapter 8: Equipment & Starting Wealth", "Chapter 9: Sequence 9 Potion Effects",
             "Chapter 10: Sequence 8 Potion Effects", "Chapter 11: Sequence 7 Potion Effects",
             "Chapter 12: Sequence 6 Potion Effects", "Chapter 13: Boon Granting",
@@ -9805,7 +8885,7 @@ def back_cover(canvas, doc):
         ("Supplement Designer & Author", "Earvin Salonoy"),
         ("Rulebook Scribes", "Mr.Worm's LOM TTRPG Discord Server"),
         ("Source Material", "Lord of the Mysteries — Cuttlefish That Loves Diving"),
-        ("Edition", "Powered by GURPS — Version 6.9c"),
+        ("Edition", "Powered by GURPS — Version 6.9e"),
         ("Usage", "Personal, non-commercial use only"),
     ]
 
